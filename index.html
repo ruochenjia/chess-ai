@@ -5,14 +5,13 @@
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<meta http-equiv="Referrer-Policy" content="no-referrer" />
 		<meta name="referrer" content="no-referrer" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="css/chessboard-1.0.0.min.css" />
-		<script type="text/javascript" src="https://webalert.pages.dev/webalert.js"></script>
-		<script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
-		<script type="text/javascript" src="js/chessboard-1.0.0.min.js"></script>
-		<script type="text/javascript" src="js/chess.js"></script>
-		<script type="text/javascript" src="js/main.js" defer="true"></script>
+		<link rel="stylesheet" type="text/css" href="lib/chessboard-1.0.0.min.css" />
+		<script type="text/javascript" src="https://webalert.pages.dev/webalert.js" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="lib/jquery-3.6.0.min.js"></script>
+		<script type="text/javascript" src="lib/chessboard-1.0.0.min.js"></script>
+		<script type="text/javascript" src="lib/stockfish.js"></script>
 		<title>Chess AI</title>
 		<style type="text/css">
 * {
@@ -53,7 +52,7 @@ body {
 	margin: auto;
 }
 
-#chess-board {
+#board {
 	position: relative;
 	width: 400px;
 	height: 400px;
@@ -208,7 +207,7 @@ body {
 	<body>
 		<div id="title">Chess AI</div>
 		<div id="board-container">
-			<div id="chess-board"></div>
+			<div id="board"></div>
 			<div id="control-menu">
 				<div class="block-title">Advantage</div>
 				<div><span id="advantageColor">Neither side</span> has the advantage (+<span id="advantageNumber">0</span>).</div>
@@ -219,13 +218,14 @@ body {
 				<div id="status">No check, checkmate, or draw.</div>
 				<div class="button" id="undoBtn">Undo</div>
 				<div class="button" id="redoBtn">Redo</div>
+				<div class="button" id="chcolorBtn">Change Color</div>
 			</div>
 		</div>
 		<div id="menu">
 			<div id="menu-container">
 				<div id="settings-block">
 					<div class="block-title">Settings</div>
-					<label for="search-depth">Search Depth (Black):</label>
+					<!-- <label for="search-depth">Search Depth (Black):</label>
 					<select id="search-depth">
 						<option value="1">1</option>
 						<option value="2">2</option>
@@ -242,9 +242,9 @@ body {
 						<option value="4">4</option>
 						<option value="5">5</option>
 					</select>
-					<br />
+					<br /> -->
 					<input type="checkbox" id="showHint" name="showHint">
-					<label for="showHint">Show Suggested Move (White)</label>
+					<label for="showHint">Show Suggested Move</label>
 				</div>
 				<div id="position-block">
 					<div class="block-title">Opening Position</div>
@@ -254,11 +254,16 @@ body {
 					<div class="button" id="startBtn">Start Position</div>
 				</div>
 				<div id="cvc-block">
-					<div class="block-title">Computer VS Computer</div>
+					<!-- <div class="block-title">Computer VS Computer</div>
 					<div class="button" id="compVsCompBtn">Start Game</div>
-					<div class="button" id="resetBtn">Stop and Reset</div>
+					<div class="button" id="resetBtn">Stop and Reset</div> -->
 				</div>
 			</div>
 		</div>
+		<script type="module">
+"use strict";
+
+import "./main.js";
+		</script>
 	</body>
 </html>
