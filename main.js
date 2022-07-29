@@ -185,26 +185,11 @@ await reader.grep("readyok");
 reader.write("ucinewgame");
 
 // event listeners
-$("#ruyLopezBtn").on("click", () => {
-	reset();
-	game.load("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1");
-	board.position(game.fen());
-	makeBestMove("b");
-});
-$("#italianGameBtn").on("click", () => {
-	reset();
-	game.load("r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1");
-	board.position(game.fen());
-	makeBestMove("b");
-});
-$("#sicilianDefenseBtn").on("click", () => {
-	reset();
-	game.load("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1");
-	board.position(game.fen());
-});
-$("#startBtn").on("click", () => {
-	reset();
-});
+$("#sicilianDefenseBtn").on("click", () => startPos("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
+$("#frenchDefenseBtn").on("click", () => startPos("rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
+$("#ruyLopezBtn").on("click", () => startPos("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1"));
+$("#caroKannDefenseBtn").on("click", () => startPos("rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
+$("#italianGameBtn").on("click", () => startPos("r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1"));
 $("#undoBtn").on("click", function () {
 	if (game.history().length >= 2) {
 		$("#board").find(".square-55d63").removeClass("highlight-white");
@@ -221,7 +206,7 @@ $("#redoBtn").on("click", function () {
 		redo();
 	} else alert("Nothing to redo.");
 });
-$("#chcolorBtn").on("click", async () => {
+$("#chcolorBtn").on("click", () => {
 	reset();
 	if (playerColor == "w") {
 		playerColor = "b";
@@ -231,6 +216,11 @@ $("#chcolorBtn").on("click", async () => {
 		playerColor = "w";
 		board.orientation("white");
 	}
+});
+$("#resetBtn").on("click", () => {
+	reset();
+	if (playerColor != "w")
+		makeBestMove("w");
 });
 $("#showHint").change(() => {
 	showHint();
@@ -261,6 +251,15 @@ function redo() {
 	game.move(undoStack.pop());
 	board.position(game.fen());
 	showHint();
+}
+
+function startPos(fen) {
+	reset();
+	game.load(fen);
+	board.position(fen);
+	let color = fen.split(" ")[1];
+	if (color != playerColor)
+		makeBestMove(color);
 }
 
 function evaluateBoard(move, prevSum, color) {
@@ -366,7 +365,7 @@ function checkStatus(color) {
 
 async function getBestMove(color) {
 	let fen = game.fen().split(" ");
-	fen[2] = color;
+	fen[1] = color;
 	fen = fen.join(" ");
 	reader.write("position fen " + fen);
 
@@ -465,8 +464,8 @@ function onDrop(source, target) {
 function onDragStart(source, piece, position, orientation) {
 	if (game.game_over())
 		return false;
-		
-	if ((game.turn() === "w" && piece.search(/^b/) !== -1) || (game.turn() === "b" && piece.search(/^w/) !== -1))
+
+	if (game.turn() != playerColor || piece[0] != playerColor)
 		return false;
 
 	return true;
@@ -483,6 +482,9 @@ function greySquare(square) {
 }
 
 function onMouseoverSquare(square, piece) {
+	if (game.game_over() || piece[0] != playerColor)
+		return;
+
 	const moves = game.moves({
 		square,
 		verbose: true
@@ -499,6 +501,27 @@ function onMouseoutSquare(square, piece) {
 
 function onSnapEnd() {
 	board.position(game.fen());
+}
+
+
+
+
+
+
+// enable testing features for localhost
+let host = new URL(window.location.href).hostname;
+if (host === "localhost") {
+	let b = Chessboard("free-board", {
+		draggable: true,
+		sparePieces: true,
+		position: "start",
+		dropOffBoard: "trash",
+		onDrop: function() {
+			$("#fen").html(b.fen());
+		}
+	});
+} else {
+	$("#cvc-block").remove();
 }
 
 
