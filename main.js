@@ -359,19 +359,26 @@ function checkStatus(color) {
 		return false;
 	}
 	return true;
-  }
+}
 
 async function getBestMove(color) {
-	let i = game.fen().split(" ");
-	i[2] = color;
-	i = i.join(" ");
-	reader.write("position fen " + i);
-	reader.write("go movetime 2000");
-	let l = await reader.grep("bestmove");
-	let m = l.split(" ")[1];
+	let fen = game.fen().split(" ");
+	fen[2] = color;
+	fen = fen.join(" ");
+	reader.write("position fen " + fen);
+
+	let time = $("#search-time :selected").val();
+	let depth = $("#search-depth :selected").val();
+	let cmd = "go movetime " + time + "000";
+	if (depth != "u")
+		cmd += " depth " + depth;
+
+	reader.write(cmd);
+	let move = (await reader.grep("bestmove")).split(" ")[1];
+
 	return {
-		from: m[0] + m[1],
-		to: m[2] + m[3],
+		from: move[0] + move[1],
+		to: move[2] + move[3],
 		promotion: "q"
 	};
 }
@@ -389,8 +396,14 @@ async function showHint() {
 async function makeBestMove(color) {
 	let move = await getBestMove(color);
 	move = game.move(move);
-	board.position(game.fen());
+	if (move == null) {
+		console.warn("Internel error");
+		alert("An unexpected error occurred while moving for " + color);
+		
+		return;
+	}
 
+	board.position(game.fen());
 	globalSum = evaluateBoard(move, globalSum, "b");
 	updateAdvantage();
   
