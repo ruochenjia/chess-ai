@@ -11,13 +11,12 @@ const board = Chessboard("board", {
 	position: "start",
 	onDragStart,
 	onDrop,
+	onMoveEnd,
 	onMouseoverSquare,
 	onMouseoutSquare,
 	onSnapEnd
 });
 const game = new Chess();
-const whiteSquareGrey = "#a9a9a9";
-const blackSquareGrey = "#696969";
 const STACK_SIZE = 100;
 const stockfish = await Stockfish();
 
@@ -126,8 +125,6 @@ const pstSelf = {
 };
 
 let globalSum = 0;
-let squareToHighlight;
-let colorToHighlight;
 let undoStack = [];
 let playerColor = "w";
 
@@ -408,21 +405,20 @@ async function makeBestMove(color) {
 	board.position(game.fen());
 	globalSum = evaluateBoard(move, globalSum, "b");
 	updateAdvantage();
-  
-	if (color === "b") {
-		checkStatus("black");
-	  	$("#board").find(".square-55d63").removeClass("highlight-black");
+	checkStatus(color == "b" ? "black" : "white");
+	highlightMove(move, color);
+}
+
+function highlightMove(move, color) {
+	console.log(move);
+	if (color == "b") {
+		$("#board").find(".square-55d63").removeClass("highlight-black");
 	  	$("#board").find(".square-" + move.from).addClass("highlight-black");
-		squareToHighlight = move.to;
-		colorToHighlight = "black";
-		$("#board").find(".square-" + squareToHighlight).addClass("highlight-" + colorToHighlight);
+		$("#board").find(".square-" + move.to).addClass("highlight-black");
 	} else {
-		checkStatus("white");
 		$("#board").find(".square-55d63").removeClass("highlight-white");
 	  	$("#board").find(".square-" + move.from).addClass("highlight-white");
-	  	squareToHighlight = move.to;
-	  	colorToHighlight = "white";
-		$("#board").find(".square-" + squareToHighlight).addClass("highlight-" + colorToHighlight);
+		$("#board").find(".square-" + move.to).addClass("highlight-white");
 	}
 }
 
@@ -441,12 +437,7 @@ function onDrop(source, target) {
 	
 	globalSum = evaluateBoard(move, globalSum, "b");
 	updateAdvantage();
-
-	$("#board").find(".square-55d63").removeClass("highlight-white");
-	$("#board").find(".square" + move.from).addClass("highlight-white");
-	squareToHighlight = move.to;
-	colorToHighlight = "white";
-	$("#board").find(".square-" + squareToHighlight).addClass("highlight-" + colorToHighlight);
+	highlightMove(move, playerColor);
 
 	if (!checkStatus("black")) {
 		makeBestMove(playerColor == "w" ? "b" : "w").then(() => {
@@ -471,14 +462,15 @@ function onDragStart(source, piece, position, orientation) {
 	return true;
 }
 
+function onMoveEnd() {
+}
+
 function removeGreySquares() {
-	$("#board .square-55d63").css("background", "");
+	$("#board .square-55d63").removeClass("highlight-moveable")
 }
   
 function greySquare(square) {
-	const sq = $("#board .square-" + square);
-	const bg = sq.hasClass("black-3c85d") ? blackSquareGrey : whiteSquareGrey;
-	sq.css("background", bg);
+	$("#board .square-" + square).addClass("highlight-moveable");
 }
 
 function onMouseoverSquare(square, piece) {
