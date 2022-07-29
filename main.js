@@ -176,6 +176,9 @@ let reader = (() => {
 // engine init
 reader.read();
 reader.write("uci");
+reader.write("setoption name Threads value 4");
+reader.write("setoption name Hash value 128");
+reader.write("setoption name UCI_Elo value 2500");
 await reader.grep("uciok");
 reader.write("isready");
 await reader.grep("readyok");
