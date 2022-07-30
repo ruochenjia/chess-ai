@@ -2,38 +2,25 @@
 
 (() => {
 // SERVICE WORKER
-importScripts("/app.js");
 
-let cacheName =  new URL(location).hostname + app.id + app.version;
+let cacheName =  self.location.hostname + "-" + "whitespider-chess-ai";
 
-async function install() {
-	let cache = await caches.open(cacheName);
-	await cache.addAll(app.fileList);
-}
-
-// do not remove the prefix '_' of this function
-// otherwise it will override the default fetch function
-async function _fetch({ request }) {
+async function fetchRe({ request }) {
 	let response = await caches.match(request);
 	if (response == null) {
 		response = await fetch(request);
-		let cache = await caches.open(cacheName);
-		cache.put(request, response.clone());	
+		(await caches.open(cacheName)).put(request, response.clone());
 	}
+
+	response.headers.append("Referrer-Policy", "no-referrer");
+	response.headers.append("X-Content-Type-Options", "nosniff");
+	response.headers.append("Cross-Origin-Opener-Policy", "same-origin");
+	response.headers.append("Cross-Origin-Embedder-Policy", "require-corp");
 	return response;
 }
 
-self.addEventListener("install", (event) => {
-	event.waitUntil(install());
-});
-
-self.addEventListener("update", (event) => {
-	event.waitUntil(install());
-});
-
 self.addEventListener("fetch", (event) => {
-	event.respondWith(_fetch(event));
+	event.respondWith(fetchRe(event));
 });
-
 
 })();

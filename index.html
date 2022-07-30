@@ -6,6 +6,7 @@
 		<meta http-equiv="Referrer-Policy" content="no-referrer" />
 		<meta name="referrer" content="no-referrer" />
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
+		<base href="/" />
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 		<link rel="stylesheet" type="text/css" href="lib/chessboard-1.0.0.min.css" />
 		<link rel="manifest" type="text/plain" href="manifest.json" />
@@ -97,6 +98,7 @@ span {
 	width: 400px;
 	height: 400px;
 	vertical-align: top;
+	touch-action: none;
 }
 
 
@@ -341,14 +343,6 @@ span {
 "use strict";
 
 import "./main.js";
-
-window.navigator.serviceWorker.register("/sw.js", {
-	scope: "/",
-	type: "classic",
-	updateViaCache: "all"
-}).catch((err) => {
-	console.warn("Failed to register service worker", err);
-});
 		</script>
 	</body>
 </html>
