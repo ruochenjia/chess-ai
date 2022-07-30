@@ -3,7 +3,13 @@
 (() => {
 // SERVICE WORKER
 
-let cacheName =  self.location.hostname + "-" + "whitespider-chess-ai";
+const cacheName =  self.location.hostname + "-" + "whitespider-chess-ai";
+const headStr = `Referrer-Policy: no-referrer
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Allow-Chrome: false`;
 
 async function fetchRe({ request }) {
 	let response = await caches.match(request);
@@ -12,11 +18,23 @@ async function fetchRe({ request }) {
 		(await caches.open(cacheName)).put(request, response.clone());
 	}
 
-	response.headers.append("Referrer-Policy", "no-referrer");
-	response.headers.append("X-Content-Type-Options", "nosniff");
-	response.headers.append("Cross-Origin-Opener-Policy", "same-origin");
-	response.headers.append("Cross-Origin-Embedder-Policy", "require-corp");
-	return response;
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers: (() => {
+			let headers = new Headers();
+			for (let h of response.headers.entries())
+				headers.append(h[0], h[1]);
+
+			let ah = headStr.split("\n");
+			for (let h of ah) {
+				h = h.split(": ");
+				headers.append(h[0], h[1]);
+			}
+
+			return headers;
+		})()
+	});
 }
 
 self.addEventListener("fetch", (event) => {

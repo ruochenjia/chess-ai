@@ -6,6 +6,11 @@ window.onerror = (msg, src, lineno, colno, e) => {
 	alert(msg, "Error");
 };
 
+if (typeof SharedArrayBuffer == "undefined") {
+	window.location.reload();
+	return;
+}
+
 const board = Chessboard("board", {
 	draggable: true,
 	position: "start",
@@ -248,7 +253,6 @@ async function makeBestMove(color) {
 }
 
 function highlightMove(move, color) {
-	console.log(move);
 	if (color == "b") {
 		$("#board").find(".square-55d63").removeClass("highlight-black");
 	  	$("#board").find(".square-" + move.from).addClass("highlight-black");
