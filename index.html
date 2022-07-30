@@ -8,15 +8,28 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 		<link rel="stylesheet" type="text/css" href="lib/chessboard-1.0.0.min.css" />
+		<link rel="manifest" type="text/plain" href="manifest.json" />
 		<script type="text/javascript" src="https://webalert.pages.dev/webalert.js" crossorigin="anonymous"></script>
 		<script type="text/javascript" src="lib/jquery-3.6.0.min.js"></script>
 		<script type="text/javascript" src="lib/chessboard-1.0.0.min.js"></script>
 		<script type="text/javascript" src="lib/stockfish.js"></script>
-		<title>Chess AI</title>
+		<title>WhiteSpider Chess AI</title>
 		<style type="text/css">
 * {
 	margin: 0px;
 	padding: 0px;
+}
+
+@font-face {
+	font-family: "Ubuntu";
+	font-style: normal;
+	src: url("res/ubuntu.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Ubuntu Mono";
+	font-style: normal;
+	src: url("res/ubuntu-mono.ttf") format("truetype");
 }
 
 body {
@@ -37,13 +50,35 @@ span {
 	display: inline-block;
 }
 
-#title {
+#logo {
 	position: relative;
 	display: block;
 	width: fit-content;
 	height: fit-content;
 	margin: auto;
-	line-height: 48px;
+	padding: 30px;
+	user-select: none;
+}
+
+#logo-ws {
+	position: relative;
+	display: inline-block;
+	width: 256px;
+	height: 64px;
+	vertical-align: top;
+	background-image: url("res/logo-low.svg");
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+#logo-text {
+	position: relative;
+	display: inline-block;
+	width: fit-content;
+	height: fit-content;
+	line-height: 64px;
+	vertical-align: top;
+	color: #808080;
 	font-size: 24px;
 	font-weight: 600;
 }
@@ -64,6 +99,13 @@ span {
 	vertical-align: top;
 }
 
+
+@media all and (max-width: 400px) {
+	#board {
+		width: 100%;
+	}
+}
+
 #control-menu {
 	position: relative;
 	display: inline-block;
@@ -71,6 +113,13 @@ span {
 	height: 360px;
 	padding: 20px;
 	vertical-align: top;
+}
+
+@media all and (max-width: 643px) {
+	#control-menu {
+		display: block;
+		margin: auto;
+	}
 }
 
 .highlight-white {
@@ -100,12 +149,11 @@ span {
 
 #settings-block, #position-block, #cvc-block {
 	position: relative;
-	display: inline-block;
+	display: block;
 	height: fit-content;
-	width: 400px;
+	width: fit-content;
 	padding: 30px;
 	margin: auto;
-	vertical-align: top;
 }
 
 .block-title {
@@ -161,8 +209,8 @@ span {
 	position: relative;
 	width: fit-content;
 	height: fit-content;
-	margin-top: 10px;
-	margin-bottom: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 	padding: 10px;
 	color: #000000;
 	background-color: #c0c0c0;
@@ -203,10 +251,27 @@ span {
 	background-color: #c0c0c0;
 	border-radius: 25px;
 }
+
+#footer {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 20px;
+	line-height: 20px;
+	margin-top: 50px;
+	color: #808080;
+	font-size: 12px;
+	font-weight: 400;
+	text-align: center;
+	text-decoration: none;
+}
 		</style>
 	</head>
 	<body>
-		<div id="title">Chess AI</div>
+		<div id="logo">
+			<a id="logo-ws" href="https://www.whitespider.gq" target="_blank"></a>
+			<div id="logo-text">Chess AI</div>
+		</div>
 		<div id="board-container">
 			<div id="board"></div>
 			<div id="control-menu">
@@ -217,63 +282,73 @@ span {
 				</div>
 				<div class="block-title" style="margin-top: 10px;">Status</div>
 				<div id="status" style="margin-top: 10px;">No check, checkmate, or draw.</div>
+				<div class="block-title" style="margin-top: 10px;">Game</div>
 				<span class="button" id="undoBtn">Undo</span>
 				<span class="button" id="redoBtn">Redo</span>
-				<div class="button" id="chcolorBtn">Change Color</div>
-				<div class="button" id="resetBtn">Reset</div>
+				<br />
+				<span class="button" id="chcolorBtn">Change Color</span>
+				<span class="button" id="resetBtn">Reset</span>
 			</div>
 		</div>
 		<div id="menu">
-				<div id="settings-block">
-					<div class="block-title">Settings</div>
-					<label for="search-time">Search Time (s):</label>
-					<select id="search-time">
-						<option value="1">1</option>
-						<option value="2" selected="true">2</option>
-						<option value="3">3</option>
-						<option value="4">4</option>
-						<option value="5">5</option>
-						<option value="5">6</option>
-						<option value="5">7</option>
-						<option value="5">8</option>
-						<option value="5">9</option>
-						<option value="5">10</option>
-					</select>
-					<br />
-					<label for="search-depth">Search Depth:</label>
-					<select id="search-depth">
-						<option value="2">2</option>
-						<option value="4">4</option>
-						<option value="6">6</option>
-						<option value="8">8</option>
-						<option value="10">10</option>
-						<option value="12">12</option>
-						<option value="15">15</option>
-						<option value="u" selected="true">Until timeout</option>
-					</select>
-					<br />
-					<input type="checkbox" id="showHint" />
-					<label for="showHint">Show Suggested Move</label>
-				</div>
-				<div id="position-block">
-					<div class="block-title">Opening Position</div>
-					<span class="button" id="sicilianDefenseBtn">Sicilian Defense</span>
-					<span class="button" id="frenchDefenseBtn">French Defense</span>
-					<span class="button" id="ruyLopezBtn">Ruy Lopez</span>
-					<span class="button" id="caroKannDefenseBtn">Caro-Kann Defense</span>
-					<span class="button" id="italianGameBtn">Italian Game</span>
-
-				</div>
-				<div id="cvc-block">
-					<div class="block-title">Free Board</div>
-					<div id="free-board"></div>
-					<div id="fen"></div>
-				</div>
+			<div id="settings-block">
+				<div class="block-title">Settings</div>
+				<label for="search-time">Search Time (s):</label>
+				<select id="search-time">
+					<option value="1">1</option>
+					<option value="2" selected="true">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="5">6</option>
+					<option value="5">7</option>
+					<option value="5">8</option>
+					<option value="5">9</option>
+					<option value="5">10</option>
+				</select>
+				<br />
+				<label for="search-depth">Search Depth:</label>
+				<select id="search-depth">
+					<option value="2">2</option>
+					<option value="4">4</option>
+					<option value="6">6</option>
+					<option value="8">8</option>
+					<option value="10">10</option>
+					<option value="12">12</option>
+					<option value="15">15</option>
+					<option value="u" selected="true">Until timeout</option>
+				</select>
+				<br />
+				<input type="checkbox" id="showHint" />
+				<label for="showHint">Show Suggested Move</label>
+			</div>
+			<div id="position-block">
+				<div class="block-title">Opening Position</div>
+				<span class="button" id="sicilianDefenseBtn">Sicilian Defense</span>
+				<span class="button" id="frenchDefenseBtn">French Defense</span>
+				<span class="button" id="ruyLopezBtn">Ruy Lopez</span>
+				<span class="button" id="caroKannDefenseBtn">Caro-Kann Defense</span>
+				<span class="button" id="italianGameBtn">Italian Game</span>
+			</div>
+			<div id="cvc-block">
+				<div class="block-title">Free Board</div>
+				<div id="free-board"></div>
+				<div id="fen"></div>
+			</div>
+			<div id="footer">©2022 WhiteSpider, created and managed by <a href="https://www.github.com/ruochenjia">Ruochen Jia</a></div>
 		</div>
 		<script type="module">
 "use strict";
 
 import "./main.js";
+
+window.navigator.serviceWorker.register("/sw.js", {
+	scope: "/",
+	type: "classic",
+	updateViaCache: "all"
+}).catch((err) => {
+	console.warn("Failed to register service worker", err);
+});
 		</script>
 	</body>
 </html>
