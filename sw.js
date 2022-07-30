@@ -4,12 +4,6 @@
 // SERVICE WORKER
 
 const cacheName =  self.location.hostname + "-" + "whitespider-chess-ai";
-const headStr = `Referrer-Policy: no-referrer
-X-Content-Type-Options: nosniff
-X-Frame-Options: SAMEORIGIN
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
-Allow-Chrome: false`;
 
 async function fetchRe({ request }) {
 	let response = await caches.match(request);
@@ -22,16 +16,14 @@ async function fetchRe({ request }) {
 		status: response.status,
 		statusText: response.statusText,
 		headers: (() => {
-			let headers = new Headers();
-			for (let h of response.headers.entries())
-				headers.append(h[0], h[1]);
-
-			let ah = headStr.split("\n");
-			for (let h of ah) {
-				h = h.split(": ");
-				headers.append(h[0], h[1]);
-			}
-
+			let headers = new Headers(response.headers);
+			// same as _headers file
+			headers.set("Referrer-Policy", "no-referrer")
+			headers.set("X-Content-Type-Options", "nosniff");
+			headers.set("X-Frame-Options", "SAMEORIGIN");
+			headers.set("Cross-Origin-Opener-Policy", "same-origin");
+			headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+			headers.set("Allow-Chrome", "false");
 			return headers;
 		})()
 	});
