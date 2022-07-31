@@ -12,21 +12,7 @@ async function fetchRe({ request }) {
 		(await caches.open(cacheName)).put(request, response.clone());
 	}
 
-	return new Response(response.body, {
-		status: response.status,
-		statusText: response.statusText,
-		headers: (() => {
-			let headers = new Headers(response.headers);
-			// same as _headers file
-			headers.set("Referrer-Policy", "no-referrer")
-			headers.set("X-Content-Type-Options", "nosniff");
-			headers.set("X-Frame-Options", "SAMEORIGIN");
-			headers.set("Cross-Origin-Opener-Policy", "same-origin");
-			headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-			headers.set("Allow-Chrome", "false");
-			return headers;
-		})()
-	});
+	return response;
 }
 
 self.addEventListener("fetch", (event) => {
