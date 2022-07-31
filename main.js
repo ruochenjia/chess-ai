@@ -11,6 +11,7 @@ if (typeof SharedArrayBuffer == "undefined") {
 	return;
 }
 
+const stockfish = await Stockfish();
 const board = Chessboard("board", {
 	draggable: true,
 	position: "start",
@@ -22,7 +23,6 @@ const board = Chessboard("board", {
 	onSnapEnd
 });
 const STACK_SIZE = 100;
-const stockfish = await Stockfish();
 
 let globalSum = 0;
 let undoStack = [];
