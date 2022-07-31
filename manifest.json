@@ -1,14 +1,14 @@
 {
 	"manifest_version": 2,
 	"name": "WhiteSpider Chess AI",
-	"short_name": "WhiteSpider Chess AI",
-	"description": "WhiteSpider Chess AI",
+	"short_name": "Chess AI",
+	"description": "",
 	"version": "0.1.0",
 	"display": "fullscreen",
 	"orientation": "any",
 	"background_color": "#ffffff",
 	"theme_color": "#ffffff",
-	"start_url": "index.html",
+	"start_url": "/",
 	"scope": "/",
 	"icons": [
 		{
