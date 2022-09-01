@@ -91,6 +91,32 @@ socket.on("invalid_id", () => {
 socket.on("users", (...args) => {
 	$("#players").text(args[0].length);
 });
+socket.on("error_quick_match", (...args) => {
+	alert(args[0], "Error");
+	changeScreen("#menu-screen");
+});
+socket.on("match", (...args) => {
+	config.mode = "online";
+	let color = args[0].color;
+	config.color = color;
+	$("#local").css("display", "none");
+	$("#sp").css("display", "none");
+	$("#load").css("display", "none");
+	changeScreen("#game-screen");
+	newGame();
+	if (color == "w") {
+		board.orientation("white");
+	} else board.orientation("black");
+});
+socket.on("sync_move", (...args) => {
+	let fen = args[0];
+	game.load(fen);
+	board.position(fen);
+});
+socket.on("game_abort", () => {
+	alert("Player disconnected", "Game Aborted");
+	changeScreen("#menu-screen");
+});
 
 
 // event listeners
@@ -159,6 +185,7 @@ $("#local-multiplayer").on("click", () => {
 	config.mode = "local";
 	$("#local").css("display", "block");
 	$("#sp").css("display", "none");
+	$("#load").css("display", "block");
 	changeScreen("#game-screen");
 	newGame();
 	board.orientation("white");
@@ -195,6 +222,7 @@ $("#play").on("click", async () => {
 
 	$("#local").css("display", "block");
 	$("#sp").css("display", "block");
+	$("#load").css("display", "block");
 	$("#show-hint").prop("checked", storage.getItem("showHint", false));
 	engine.write("setoption name Skill Level value " + $("#skill-level :selected").val());
 	changeScreen("#game-screen");
@@ -210,7 +238,20 @@ $("#play").on("click", async () => {
 	showHint();
 });
 $("#quick-match").on("click", () => {
-	alert("", "Server Connection Failure");
+	if (!socket.connected) {
+		alert("", "Server Connection Failure");
+		changeScreen("#menu-screen");
+		return;
+	}
+
+	socket.emit("req_quick_match", {
+		nickname: $("#nickname").val()
+	});
+
+	changeScreen("#matching-screen");
+});
+$("#cancel").on("click", () => {
+	socket.emit("cancel_quick_match");
 	changeScreen("#menu-screen");
 });
 $("#undo").on("click", () => {
@@ -519,7 +560,10 @@ function makeMove(from, to, promotion) {
 	highlightMove(move);
 	$("#pgn").text(game.pgn());
 	$("#fen").val(game.fen());
-	storage.savedGame = { ...config }
+
+	if (config.mode != "online")
+		storage.savedGame = { ...config };
+
 	return move;
 }
 
@@ -536,15 +580,25 @@ function onDrop(source, target) {
 			showHint();
 		});
 	}
+
+	if (config.mode == "online") {
+		socket.emit("make_move", move);
+	}
 }
 
 function shouldMove(piece) {
 	if (game.game_over())
 		return false;
-	
-	if (config.mode == "single")
-		return piece[0] == config.color;
-	else return game.turn() == piece[0];
+
+	switch (config.mode) {
+		case "single":
+		case "online":
+			return piece[0] == config.color;
+		case "local":
+			return piece[0] == game.turn();
+		default:
+			return false;
+	}
 }
 
 function onDragStart(source, piece, position, orientation) {
@@ -583,7 +637,7 @@ function onSnapEnd() {
 function genCliId() {
 	let str = "";
 	for (let i = 0; i < 20; i++)
-		str += Math.floor(Math.random() * 9);
+		str += Math.floor(Math.random() * 10);
 	return str;
 }
 

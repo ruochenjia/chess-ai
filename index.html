@@ -29,7 +29,7 @@ body {
 	height: 100%;
 	overflow: hidden;
 	font-size: 14px;
-	font-family: "Ubuntu Condensed";
+	font-family: "Ubuntu";
 	font-weight: 500;
 	font-style: normal;
 	color: #303030;
@@ -467,11 +467,15 @@ select:focus, input[type="text"]:focus {
 	font-weight: 600;
 }
 
+#nickname {
+	width: 150px;
+}
+
 #loading-screen, #noscript-screen {
 	background-color: #ffffff;
 }
 
-#loading-text, #noscript-text {
+.text-screen-text {
 	position: relative;
 	display: block;
 	width: fit-content;
@@ -582,13 +586,13 @@ select:focus, input[type="text"]:focus {
 								<div id="advantageBar"></div>
 							</div>
 							<div id="status" style="margin-top: 10px;"></div>
-							<div id="local" style="display: none;">
+							<div id="local">
 								<div class="button" id="undo">Undo</div>
 								<div class="button" id="redo">Redo</div>
 								<br />
 								<div class="button" id="restart">Restart</div>
 								<div class="button" id="menu-btn">Menu</div>
-								<div id="sp" style="display: none;">
+								<div id="sp">
 									<input type="checkbox" id="show-hint" style="margin-top: 10px;" />
 									<label for="show-hint">Show Suggested Move</label>
 								</div>
@@ -602,12 +606,16 @@ select:focus, input[type="text"]:focus {
 					</div>
 				</div>
 			</div>
+			<div id="matching-screen" class="screen" style="visibility: hidden;">
+				<div class="text-screen-text">Searching for players...</div>
+				<div id="cancel" class="button">Cancel</div>
+			</div>
 			<div id="loading-screen" class="screen">
-				<div id="loading-text">Loading...</div>
+				<div class="text-screen-text">Loading...</div>
 			</div>
 			<noscript>
 				<div id="noscript-screen" class="screen">
-					<div id="noscript-text">Please enable JavaScript and reload this page to continue.</div>
+					<div class="text-screen-text">Please enable JavaScript and reload this page to continue.</div>
 				</div>
 			</noscript>
 		</div>
