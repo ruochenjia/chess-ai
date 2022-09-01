@@ -1,4 +1,8 @@
 import { game, evaluateBoard } from "./gamebase.js";
+import { io } from "./lib/socket.io.esm.min.js";
+import { clientConfig } from "./clientconfig.js";
+import { UCIEngine } from "./uci.js";
+import { storage } from "./storage.js";
 
 (async () => {
 // default error handler
@@ -6,305 +10,545 @@ window.onerror = (msg, src, lineno, colno, e) => {
 	alert(msg, "Error");
 };
 
-if (typeof SharedArrayBuffer == "undefined") {
-	window.location.reload();
-	return;
+// register service worker if available
+if ("serviceWorker" in window.navigator && window.location.hostname != "localhost") {
+	window.navigator.serviceWorker.register("./sw.js", {
+		scope: "/",
+		type: "module",
+		updateViaCache: "all"
+	});
 }
 
-const stockfish = await Stockfish();
+Array.prototype.remove = function(element) {
+	for (let i = 0; i < this.length; i++) {
+		if (this[i] == element)
+			this.splice(i, 1);
+	}
+};
+
+Array.prototype.last = function() {
+	let len = this.length;
+	if (len < 1)
+		return null;
+	return this[len - 1];
+};
+
+Object.clear = (obj) => {
+	for (let k in obj)
+		delete obj[k];
+};
+
+Object.merge = (a, b) => {
+	for (let k in b)
+		a[k] = b[k];
+};
+
+const engine = UCIEngine();
 const board = Chessboard("board", {
 	draggable: true,
 	position: "start",
 	onDragStart,
 	onDrop,
-	onMoveEnd,
 	onMouseoverSquare,
 	onMouseoutSquare,
 	onSnapEnd
 });
-const STACK_SIZE = 100;
+const config = {};
 
-let globalSum = 0;
-let undoStack = [];
-let playerColor = "w";
-
-let reader = (() => {
-	let messages = [];
-
-	stockfish.addMessageListener((msg) => {
-		// always log output messages for debugging
-		console.log(msg);
-
-		messages.push(msg);
-	});
-
-	function read() {
-		if (messages.length > 0) {
-			let msg = messages[0];
-			messages.splice(0, 1);
-			return msg;
-		}
-		return null;
-	}
-
-	function grep(text) {
-		return new Promise((resolve) => {
-			let to = () => {
-				let msg = read();
-				if (msg != null && msg.includes(text))
-					resolve(msg);
-				else setTimeout(to, 50);
-			}
-			to();
-		});
-	}
-
-	function write(msg) {
-		stockfish.postMessage(msg);
-	}
-
-	return {
-		read,
-		grep,
-		write
-	};
-})();
+// debug only
+if (clientConfig.debug)
+	window.game = game;
 
 // engine init
-reader.read();
-reader.write("uci");
-reader.write("setoption name Threads value 4");
-reader.write("setoption name Hash value 128");
-reader.write("setoption name UCI_Elo value 2500");
-await reader.grep("uciok");
-reader.write("isready");
-await reader.grep("readyok");
-reader.write("ucinewgame");
+await engine.init("stockfish");
+engine.read();
+engine.write("uci");
+engine.write("setoption name Threads value 4");
+engine.write("setoption name Hash value 128");
+await engine.grep("uciok");
+engine.write("isready");
+engine.grep("readyok");
+
+// server init
+const socket = io(clientConfig.server);
+socket.on("register", () => {
+	let clientId = storage.clientId;
+	if (clientId == null)
+		clientId = storage.clientId = genCliId();
+
+	socket.emit("client_id", clientId);
+
+	// update online players every second
+	setInterval(() => {
+		socket.emit("req_users");
+	}, 1000);
+});
+socket.on("invalid_id", () => {
+	let clientId = genCliId();
+	storage.clientId = clientId;
+	socket.emit("client_id", clientId);
+});
+socket.on("users", (...args) => {
+	$("#players").text(args[0].length);
+});
+
 
 // event listeners
 $("#board").on("touchmove touchend touchstart", (e) => {
 	// prevent scroll while dragging pieces
-	e.preventDefault();
+	if (e.cancelable)
+		e.preventDefault();
 });
-$("#sicilianDefenseBtn").on("click", () => startPos("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
-$("#frenchDefenseBtn").on("click", () => startPos("rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
-$("#ruyLopezBtn").on("click", () => startPos("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1"));
-$("#caroKannDefenseBtn").on("click", () => startPos("rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"));
-$("#italianGameBtn").on("click", () => startPos("r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1"));
-$("#undoBtn").on("click", function () {
-	if (game.history().length >= 2) {
-		$("#board").find(".square-55d63").removeClass("highlight-white");
-		$("#board").find(".square-55d63").removeClass("highlight-black");
-		$("#board").find(".square-55d63").removeClass("highlight-hint");
-		
-		undo();
-		undo();
-	} else alert("Nothing to undo.");
-});
-$("#redoBtn").on("click", function () {
-	if (undoStack.length >= 2) {
-		redo();
-		redo();
-	} else alert("Nothing to redo.");
-});
-$("#chcolorBtn").on("click", () => {
-	reset();
-	if (playerColor == "w") {
-		playerColor = "b";
-		board.orientation("black");
-		makeBestMove("w");
-	} else {
-		playerColor = "w";
-		board.orientation("white");
+$("#continue").on("click", async () => {
+	let cfg = storage.savedGame;
+	if (cfg == null) {
+		alert("Internal error", "Error");
+		$("#continue").css("display", "none");
+	}
+
+	Object.clear(config);
+	Object.merge(config, cfg);
+
+	switch (cfg.mode) {
+		case "single":
+			$("#local").css("display", "block");
+			$("#single").css("display", "block");
+			$("#show-hint").prop("checked", storage.getItem("showHint", false));
+			engine.write("setoption name Skill Level value " + storage.skillLevel);
+
+			if (cfg.color == "w")
+				board.orientation("white");
+			else
+				board.orientation("black");
+			showHint();
+			break;
+		case "local":
+			$("#local").css("display", "block");
+			$("#sp").css("display", "none");
+			board.orientation("white");
+	}
+
+	game.reset();
+	engine.write("ucinewgame");
+	for (let m of cfg.moves) {
+		game.move(m);
+	}
+
+	board.position(game.fen(), false);
+	removeHighlights();
+	updateAdvantage();
+	$("#status").html(`<b>${game.turn() == "w" ? "White": "Black"}</b> to move.`);
+	$("#pgn").html(game.pgn());
+	$("#fen").val(game.fen());
+	changeScreen("#game-screen");
+
+	if (cfg.mode == "single") {
+		if (cfg.color != game.turn())
+			await makeBestMove();
+		showHint();
 	}
 });
-$("#resetBtn").on("click", () => {
-	reset();
-	if (playerColor != "w")
-		makeBestMove("w");
+$("#single-player").on("click", () => {
+	changeScreen("#option-screen");
+	$(`input[type=\"radio\"][name=\"color\"][value=\"${storage.getItem("color", "r")}\"]`).prop("checked", true);
+	$("#skill-level").val(storage.getItem("skillLevel", "20"));
+	$("#search-time").val(storage.getItem("searchTime", "2"));
+	$("#search-depth").val(storage.getItem("searchDepth", "0"));
 });
-$("#showHint").change(() => {
+$("#local-multiplayer").on("click", () => {
+	config.mode = "local";
+	$("#local").css("display", "block");
+	$("#sp").css("display", "none");
+	changeScreen("#game-screen");
+	newGame();
+	board.orientation("white");
+});
+$("#online-multiplayer").on("click", () => {
+	changeScreen("#online-option-screen");
+	$("#nickname").val(storage.getItem("nickname", "Player"));
+	$("#player-id").text(storage.clientId);
+});
+$("input[type=\"radio\"][name=\"color\"]").on("change", () => {
+	storage.color = $("input[type=\"radio\"][name=\"color\"]:checked").val();
+});
+$("#skill-level").on("change", () => {
+	storage.skillLevel = $("#skill-level :selected").val();
+});
+$("#search-time").on("change", () => {
+	storage.searchTime = $("#search-time :selected").val();
+});
+$("#search-depth").on("change", () => {
+	storage.searchDepth = $("#search-depth :selected").val();
+});
+$("#nickname").on("change", () => {
+	storage.nickname = $("#nickname").val();
+});
+$("#play").on("click", async () => {
+	let color = $("input[type=\"radio\"][name=\"color\"]:checked").val();
+	if (color == "r")
+		color = Math.random() > 0.5 ? "w" : "b";
+
+	config.color = color;
+	config.searchTime = $("#search-time :selected").val();
+	config.searchDepth = $("#search-depth :selected").val();
+	config.mode = "single";
+
+	$("#local").css("display", "block");
+	$("#sp").css("display", "block");
+	$("#show-hint").prop("checked", storage.getItem("showHint", false));
+	engine.write("setoption name Skill Level value " + $("#skill-level :selected").val());
+	changeScreen("#game-screen");
+	newGame();
+
+	if (color == "w")
+		board.orientation("white");
+	else {
+		board.orientation("black");
+		await makeBestMove();
+	}
+
 	showHint();
 });
+$("#quick-match").on("click", () => {
+	alert("", "Server Connection Failure");
+	changeScreen("#menu-screen");
+});
+$("#undo").on("click", () => {
+	if (undo()) {
+		removeHighlights();
+		updateAdvantage();
+		showHint();
+		$("#pgn").text(game.pgn());
+		$("#fen").val(game.fen());
+	} else alert("Nothing to undo");
+});
+$("#redo").on("click", () => {
+	if (redo()) {
+		removeHighlights();
+		updateAdvantage();
+		showHint();
+		$("#pgn").text(game.pgn());
+		$("#fen").val(game.fen());
+	} else alert("Nothing to redo");
+});
+$("#restart").on("click", async () => {
+	newGame();
+	if (config.mode == "single") {
+		if (config.color != "w")
+			await makeBestMove();
+		showHint();
+	}
+});
+$("#menu-btn").on("click", () => {
+	changeScreen("#menu-screen");
+	config.movingPiece = false;
+	if (storage.savedGame != null)
+		$("#continue").css("display", "block");
+	else $("#continue").css("display", "none");
+});
+$("#load").on("click", async () => {
+	let fen = $("#fen").val();
 
-function reset() {
+	if (game.load(fen)) {
+		resetBoard();
+		if (config.mode == "single") {
+			if (config.color != game.turn())
+				await makeBestMove();
+			showHint();
+		}
+	} else alert("Invalid FEN string", "Error");
+});
+$("#show-hint").on("change", () => {
+	storage.showHint = $("#show-hint").is(":checked");
+	showHint();
+});
+// chessboard resize handler
+$(window).on("resize", resizeBoard);
+
+function changeScreen(id) {
+	$(".screen").css("visibility", "hidden");
+	$(id).css("visibility", "visible");
+}
+
+function resizeBoard() {
+	let width = $("#board").width();
+	let height = $("#board").height();
+
+	if (width != height)
+		$("#board").height(width);
+
+	board.resize();
+}
+
+resizeBoard();
+if (storage.savedGame != null)
+	$("#continue").css("display", "block");
+
+function removeHighlights() {
+	$("#board .square-55d63").removeClass("highlight-white");
+	$("#board .square-55d63").removeClass("highlight-black");
+	$("#board .square-55d63").removeClass("highlight-hint");
+}
+
+function newGame() {
 	game.reset();
-	reader.write("ucinewgame");
-	globalSum = 0;
-	$("#board").find(".square-55d63").removeClass("highlight-white");
-	$("#board").find(".square-55d63").removeClass("highlight-black");
-	$("#board").find(".square-55d63").removeClass("highlight-hint");
-	board.position(game.fen());
-	$("#advantageColor").text("Neither side");
-	$("#advantageNumber").text(globalSum);
+	resetBoard();
+}
+
+function resetBoard() {
+	engine.write("ucinewgame");
+	config.globalSum = 0;
+	config.moves = [];
+	config.undoStack = [];
+	config.ponderMove = null;
+	config.movingPiece = false;
+	storage.savedGame = null;
+
+	let fen = game.fen();
+	let pgn = game.pgn();
+	board.position(fen, false);
+	removeHighlights();
+	updateAdvantage();
+	$("#status").html(`<b>${game.turn() == "w" ? "White": "Black"}</b> to move.`);
+	$("#pgn").text(pgn);
+	$("#fen").val(fen);
 }
 
 function undo() {
-	let move = game.undo();
-	undoStack.push(move);
-	if (undoStack.length > STACK_SIZE)
-	  undoStack.shift();
-	board.position(game.fen());
-	showHint();
+	let length = config.moves.length;
+	if (length < 1)
+		return false;
+
+	switch (config.mode) {
+		case "single":
+			if (config.movingPiece) {
+				config.movingPiece = false;
+				_undo();
+			} else {
+				_undo();
+				_undo();
+			}
+			return true;
+		case "local":
+			_undo();
+			return true;
+		default:
+			return false;
+	}
 }
 
 function redo() {
-	game.move(undoStack.pop());
+	let length = config.undoStack.length;
+	if (length < 1)
+		return false;
+
+	switch (config.mode) {
+		case "single":
+			if (length >= 2) {
+				_redo();
+				_redo();
+				return true;
+			} else return false;
+		case "local":
+			_redo();
+			return true;
+		default:
+			return false;
+	}
+}
+
+function _undo() {
+	game.undo();
+	let move = config.moves.pop();
+	let last = config.moves.last();
+	config.globalSum = last == null ? 0 : last.sum;
+	config.undoStack.push(move);
+	// recalculation is required after undo
+	config.ponderMove = null;
 	board.position(game.fen());
-	showHint();
 }
 
-function startPos(fen) {
-	reset();
-	game.load(fen);
-	board.position(fen);
-	let color = fen.split(" ")[1];
-	if (color != playerColor)
-		makeBestMove(color);
+function _redo() {
+	let move = config.undoStack.pop();
+	game.move(move);
+	config.moves.push(move);
+	config.globalSum = move.sum;
+	board.position(game.fen());
 }
-
-
 
 function updateAdvantage() {
-	if (globalSum > 0) {
+	let sum = config.globalSum;
+	if (sum > 0) {
 		$("#advantageColor").text("Black");
-		$("#advantageNumber").text(globalSum);
-	} else if (globalSum < 0) {
+		$("#advantageNumber").text(sum);
+	} else if (sum < 0) {
 		$("#advantageColor").text("White");
-		$("#advantageNumber").text(-globalSum);
+		$("#advantageNumber").text(-sum);
 	} else {
 		$("#advantageColor").text("Neither side");
-		$("#advantageNumber").text(globalSum);
+		$("#advantageNumber").text(sum);
 	}
 	$("#advantageBar").attr({
-		"aria-valuenow": `${-globalSum}`,
-		style: `width: ${((-globalSum + 2000) / 4000) * 100}%`
+		"aria-valuenow": `${-sum}`,
+		style: `width: ${(() => {
+			let v = (-sum + 2000) / 40;
+			if (v > 100)
+				v = 100;
+			if (v < 0)
+				v = 0;
+			return Math.round(v);
+		})()}%`
 	});
 }
 
 function checkStatus(color) {
-	if (game.in_checkmate())
-		$("#status").html(`<b>Checkmate!</b> Oops, <b>${color}</b> lost.`);
-	else if (game.insufficient_material())
-		$("#status").html(`It's a <b>draw!</b> (Insufficient Material)`);
-	else if (game.in_threefold_repetition())
-		$("#status").html(`It's a <b>draw!</b> (Threefold Repetition)`);
-	else if (game.in_stalemate())
-		$("#status").html(`It's a <b>draw!</b> (Stalemate)`);
-	else if (game.in_draw())
-		$("#status").html(`It's a <b>draw!</b> (50-move Rule)`);
-	else if (game.in_check()) {
-		$("#status").html(`Oops, <b>${color}</b> is in <b>check!</b>`);
-		return false;
+	let current, next, msg, gameOver = false;
+
+	if (color == "w") {
+		current = "White";
+		next = "Black";
 	} else {
-		$("#status").html(`No check, checkmate, or draw.`);
-		return false;
+		current = "Black";
+		next = "White";
 	}
-	return true;
+
+	// avoid using game.game_over() for performance reasons
+	if (game.in_checkmate()) {
+		msg = `<b>Checkmate!</b> <b>${current}</b> won.`
+		gameOver = true;
+	} else if (game.insufficient_material()) {
+		msg = `<b>Draw!</b> (Insufficient Material)`;
+		gameOver = true;
+	} else if (game.in_threefold_repetition()) {
+		msg = `<b>Draw!</b> (Threefold Repetition)`;
+		gameOver = true;
+	} else if (game.in_stalemate()) {
+		msg = `<b>Draw!</b> (Stalemate)`;
+		gameOver = true;
+	} else if (game.in_draw()) {
+		msg = `<b>Draw!</b> (50-move Rule)`;
+		gameOver = true;
+	} else if (game.in_check())
+		msg = `<b>${next}</b> to move, and is in <b>check!</b>`;
+	else
+		msg = `<b>${next}</b> to move.`;
+
+	$("#status").html(msg);
+
+	if (gameOver) {
+		alert(msg, "Game Over");
+		return true;
+	} else return false;
 }
 
-async function getBestMove(color) {
-	let fen = game.fen().split(" ");
-	fen[1] = color;
-	fen = fen.join(" ");
-	reader.write("position fen " + fen);
+async function getBestMove() {
+	engine.write(`position fen ${game.fen()}`);
 
-	let time = $("#search-time :selected").val();
-	let depth = $("#search-depth :selected").val();
-	let cmd = "go movetime " + time + "000";
-	if (depth != "u")
+	let cmd = `go movetime ${config.searchTime}000`;
+	let depth = config.searchDepth;
+	if (depth != "0")
 		cmd += " depth " + depth;
 
-	reader.write(cmd);
-	let move = (await reader.grep("bestmove")).split(" ")[1];
-
-	return {
+	engine.write(cmd);
+	let output = (await engine.grep("bestmove")).split(" ");
+	let move = output[1];
+	let moveObj = {
 		from: move[0] + move[1],
 		to: move[2] + move[3],
-		promotion: "q"
 	};
+
+	if (output.length == 4) {
+		let ponder = output[3];
+		let ponderObj = {
+			from: ponder[0] + ponder[1],
+			to: ponder[2] + ponder[3]
+		};
+		moveObj.ponder = ponderObj;
+	}
+
+	return moveObj;
 }
 
 async function showHint() {
-	$("#board").find(".square-55d63").removeClass('highlight-hint');
+	$("#board .square-55d63").removeClass('highlight-hint');
 
-	if ($("#showHint").is(":checked")) {
-		let move = await getBestMove(playerColor);
-		$("#board").find('.square-' + move.from).addClass('highlight-hint');
-		$("#board").find('.square-' + move.to).addClass('highlight-hint');
+	if ($("#show-hint").is(":checked") && !game.game_over()) {
+		let move = config.ponderMove;
+		if (move == null)
+			move = await getBestMove();
+		$("#board .square-" + move.from).addClass('highlight-hint');
+		$("#board .square-" + move.to).addClass('highlight-hint');
 	}
 }
 
-async function makeBestMove(color) {
-	let move = await getBestMove(color);
-	move = game.move(move);
-	if (move == null) {
-		console.warn("Internel error");
-		alert("An unexpected error occurred while moving for " + color);
-		
-		return;
-	}
+async function makeBestMove() {
+	config.movingPiece = true;
+	let move = await getBestMove();
+	if (!config.movingPiece)
+		return; // interrupt move
 
+	config.ponderMove = move.ponder;
+	makeMove(move.from, move.to, "q");
 	board.position(game.fen());
-	globalSum = evaluateBoard(move, globalSum, "b");
-	updateAdvantage();
-	checkStatus(color == "b" ? "black" : "white");
-	highlightMove(move, color);
+	config.movingPiece = false;
 }
 
-function highlightMove(move, color) {
-	if (color == "b") {
-		$("#board").find(".square-55d63").removeClass("highlight-black");
-	  	$("#board").find(".square-" + move.from).addClass("highlight-black");
-		$("#board").find(".square-" + move.to).addClass("highlight-black");
+function highlightMove(move) {
+	if (move.color == "b") {
+		$("#board .square-55d63").removeClass("highlight-black");
+	  	$("#board .square-" + move.from).addClass("highlight-black");
+		$("#board .square-" + move.to).addClass("highlight-black");
 	} else {
-		$("#board").find(".square-55d63").removeClass("highlight-white");
-	  	$("#board").find(".square-" + move.from).addClass("highlight-white");
-		$("#board").find(".square-" + move.to).addClass("highlight-white");
+		$("#board .square-55d63").removeClass("highlight-white");
+	  	$("#board .square-" + move.from).addClass("highlight-white");
+		$("#board .square-" + move.to).addClass("highlight-white");
 	}
+}
+
+function makeMove(from, to, promotion) {
+	let move = game.move({ from, to, promotion });
+	if (move == null)
+		return null;
+
+	let sum = evaluateBoard(move, config.globalSum, "b");
+	move.sum = sum;
+	move.status = checkStatus(move.color);
+	config.moves.push(move);
+	config.globalSum = sum;
+	updateAdvantage();
+	highlightMove(move);
+	$("#pgn").text(game.pgn());
+	$("#fen").val(game.fen());
+	storage.savedGame = { ...config }
+	return move;
 }
 
 function onDrop(source, target) {
-	undoStack = [];
+	config.undoStack = [];
 	removeGreySquares();
 
-	const move = game.move({
-		from: source,
-		to: target,
-		promotion: "q"
-	});
-
+	let move = makeMove(source, target, "q");
 	if (move == null)
 		return "snapback";
-	
-	globalSum = evaluateBoard(move, globalSum, "b");
-	updateAdvantage();
-	highlightMove(move, playerColor);
 
-	if (!checkStatus("black")) {
-		makeBestMove(playerColor == "w" ? "b" : "w").then(() => {
+	if (!move.status && config.mode == "single") {
+		makeBestMove().then(() => {
 			showHint();
 		});
 	}
 }
 
-
-/*
- * The remaining code is adapted from chessboard.js examples #5000 through #5005:
- * https://chessboardjs.com/examples#5000
- */
-
-function onDragStart(source, piece, position, orientation) {
+function shouldMove(piece) {
 	if (game.game_over())
 		return false;
-
-	if (game.turn() != playerColor || piece[0] != playerColor)
-		return false;
-
-	return true;
+	
+	if (config.mode == "single")
+		return piece[0] == config.color;
+	else return game.turn() == piece[0];
 }
 
-function onMoveEnd() {
+function onDragStart(source, piece, position, orientation) {
+	return shouldMove(piece);
 }
 
 function removeGreySquares() {
@@ -316,17 +560,16 @@ function greySquare(square) {
 }
 
 function onMouseoverSquare(square, piece) {
-	if (game.game_over() || piece[0] != playerColor)
+	if (!shouldMove(piece))
 		return;
 
-	const moves = game.moves({
+	let moves = game.moves({
 		square,
 		verbose: true
 	});
 
-	for (let i = 0; i < moves.length; i++) {
+	for (let i = 0; i < moves.length; i++)
 		greySquare(moves[i].to);
-	}
 }
   
 function onMouseoutSquare(square, piece) {
@@ -337,6 +580,13 @@ function onSnapEnd() {
 	board.position(game.fen());
 }
 
-})();
+function genCliId() {
+	let str = "";
+	for (let i = 0; i < 20; i++)
+		str += Math.floor(Math.random() * 9);
+	return str;
+}
 
-export {};
+$("#loading-screen").remove();
+
+})();
