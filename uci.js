@@ -119,7 +119,6 @@ $("body").on("keydown", (e) => {
 			switch (code) {
 				case 83: // ctrl+s
 				case 85: // ctrl+u
-				case 67: // ctrl+c
 					return true;
 			}
 		}
