@@ -1,3 +1,0 @@
-[submodule "lib/webalert"]
-	path = lib/webalert
-	url = https://github.com/ruochenjia/webalert.git
