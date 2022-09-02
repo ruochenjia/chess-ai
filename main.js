@@ -99,11 +99,21 @@ socket.on("match", (...args) => {
 	if (color == "w") {
 		board.orientation("white");
 	} else board.orientation("black");
+
+	alert("Your opponent: " + args[0].opponent.info.nickname, "Match Found");
 });
 socket.on("sync_move", (...args) => {
-	let fen = args[0];
+	let fen = args[0].fen;
+	let pgn = args[0].pgn;
 	game.load(fen);
 	board.position(fen);
+	$("#fen").text(fen);
+	$("#pgn").text(pgn);
+});
+socket.on("move", (...args) => {
+	let move = args[0];
+	makeMove(move.from, move.to, move.promotion);
+	board.position(game.fen());
 });
 socket.on("game_abort", () => {
 	alert("Player disconnected", "Game Aborted");
@@ -278,6 +288,9 @@ $("#menu-btn, #home").on("click", () => {
 	if (storage.savedGame != null)
 		$("#continue").css("display", "block");
 	else $("#continue").css("display", "none");
+
+	if (config.mode == "online")
+		socket.emit("req_disconnect");
 });
 $("#load").on("click", async () => {
 	let fen = $("#fen").val();
