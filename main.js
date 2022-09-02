@@ -272,7 +272,7 @@ $("#restart").on("click", async () => {
 		showHint();
 	}
 });
-$("#menu-btn").on("click", () => {
+$("#menu-btn, #home").on("click", () => {
 	changeScreen("#menu-screen");
 	config.movingPiece = false;
 	if (storage.savedGame != null)
@@ -633,6 +633,7 @@ function genCliId() {
 	return str;
 }
 
+$("#version").text(clientConfig.cacheVersion);
 $("#loading-screen").remove();
 
 })();

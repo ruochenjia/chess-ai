@@ -82,6 +82,12 @@ input, select, textarea {
 	vertical-align: top;
 }
 
+#home {
+	position: absolute;
+	right: 110px;
+	top: 10px;
+}
+
 #settings {
 	position: absolute;
 	right: 60px;
@@ -266,7 +272,7 @@ input, select, textarea {
 #control-menu {
 	position: relative;
 	display: inline-block;
-	width: 200px;
+	width: 260px;
 	height: 560px;
 	padding: 20px;
 	vertical-align: top;
@@ -291,7 +297,9 @@ input, select, textarea {
 #undo, #redo, #restart, #menu-btn {
 	display: inline-block;
 	margin-top: 10px;
-	width: calc(50% - 30px);
+	border-style: solid;
+	border-width: 1px;
+	border-color: #303030;
 }
 
 .block-title {
@@ -541,6 +549,7 @@ select:focus, input[type="text"]:focus {
 		<div id="header">
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheata</i></div>
+			<img id="home" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
 			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" aria-label="Settings" />
 			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" aria-label="About" />
 		</div>
@@ -566,7 +575,7 @@ select:focus, input[type="text"]:focus {
 						</div>
 					</div>
 				</div>
-				<div id="footer">©2022 ChessCheata, created by <a href="https://www.github.com/ruochenjia">Ruochen Jia</a></div>
+				<div id="footer">ChessCheata v<span id="version"></span> | Created by <a href="https://www.github.com/ruochenjia" target="_blank">Ruochen Jia</a> | <a href="https://www.github.com/ruochenjia/chesscheata" target="_blank">GitHub</a></div>
 			</div>
 			<div id="option-screen" class="screen" style="visibility: hidden;">
 				<div class="option-menu">
@@ -643,7 +652,9 @@ select:focus, input[type="text"]:focus {
 					<label for="player-id">Player ID: </label>
 					<span id="player-id"></span>
 					<br />
-					<div id="quick-match" class="button">Quick Match</div>
+					<div id="quick-match" class="menu-button" style="text-align: center;">
+						<div>Quick Match</div>
+					</div>
 				</div>
 			</div>
 			<div id="game-screen" class="screen" style="visibility: hidden;">
@@ -657,11 +668,10 @@ select:focus, input[type="text"]:focus {
 							</div>
 							<div id="status" style="margin-top: 10px;"></div>
 							<div id="local">
-								<div class="button" id="undo">Undo</div>
-								<div class="button" id="redo">Redo</div>
-								<br />
-								<div class="button" id="restart">Restart</div>
-								<div class="button" id="menu-btn">Menu</div>
+								<img id="undo" class="image-button" src="res/undo.svg" width="30" height="30" aria-label="Undo" />
+								<img id="redo" class="image-button" src="res/redo.svg" width="30" height="30" aria-label="Redo" />
+								<img id="restart" class="image-button" src="res/restart.svg" width="30" height="30" aria-label="Restart" />
+								<img id="menu-btn" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
 								<div id="sp">
 									<input type="checkbox" id="show-hint" style="margin-top: 10px;" />
 									<label for="show-hint">Show Suggested Move</label>
@@ -678,7 +688,9 @@ select:focus, input[type="text"]:focus {
 			</div>
 			<div id="matching-screen" class="screen" style="visibility: hidden;">
 				<div class="text-screen-text">Searching for players...</div>
-				<div id="cancel" class="button">Cancel</div>
+				<div id="cancel" class="menu-button" style="text-align: center; margin: auto;">
+					<div>Cancel</div>
+				</div>
 			</div>
 			<div id="loading-screen" class="screen">
 				<div class="text-screen-text">Loading...</div>
