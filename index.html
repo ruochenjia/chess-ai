@@ -22,6 +22,10 @@
 	padding: 0px;
 }
 
+*:hover, *:active {
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
 body {
 	position: absolute;
 	display: block;
@@ -80,28 +84,14 @@ input, select, textarea {
 
 #settings {
 	position: absolute;
-	display: block;
-	width: 40px;
-	height: 40px;
 	right: 60px;
-	top: 15px;
-	cursor: pointer;
-	background-image: url("res/settings.svg");
-	background-size: contain;
-	background-repeat: no-repeat;
+	top: 10px;
 }
 
 #about {
 	position: absolute;
-	display: block;
-	width: 40px;
-	height: 40px;
 	right: 10px;
-	top: 15px;
-	cursor: pointer;
-	background-image: url("res/about.svg");
-	background-size: contain;
-	background-repeat: no-repeat;	
+	top: 10px;
 }
 
 #screen-container {
@@ -335,6 +325,46 @@ input, select, textarea {
 	border-radius: 25px;
 }
 
+.button {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	padding: 10px;
+	cursor: pointer;
+	color: #ffffff;
+	background-color: #303030;
+	user-select: none;
+	text-decoration: none;
+	text-align: center;
+}
+
+.button:hover {
+	background-color: #404040;
+}
+
+.button:active {
+	background-color: #505050;
+}
+
+.image-button {
+	position: relative;
+	display: block;
+	width: 30px;
+	height: 30px;
+	padding: 10px;
+	cursor: pointer;
+	user-select: none;
+	border-radius: 25px;
+}
+
+.image-button:hover {
+	background-color: #f0f0f0;
+}
+
+.image-button:active {
+	background-color: #c0c0c0;
+}
+
 #advantage {
 	position: relative;
 	display: block;
@@ -364,40 +394,62 @@ input, select, textarea {
 	line-height: 14px;
 }
 
-#menu {
-	position: absolute;
-	display: block;
-	width: 300px;
-	height: 300px;
-	top: 50%;
-	left: 50%;
-	margin-top: -150px;
-	margin-left: -150px;
+#menu-a {
+	position: relative;
+	display: table;
+	width: fit-content;
+	height: 100%;
+	margin: auto;
 }
 
-.button {
+#menu-b {
 	position: relative;
+	display: table-cell;
 	width: fit-content;
 	height: fit-content;
-	padding: 10px;
-	cursor: pointer;
-	color: #ffffff;
-	background-color: #202020;
-	user-select: none;
-	text-decoration: none;
-	text-align: center;
+	vertical-align: middle;
 }
 
-#menu .button {
-	width: 100%;
-	height: 24px;
-	line-height: 24px;
-	padding-left: 0px;
-	padding-right: 0px;
+.menu-button {
+	position: relative;
+	display: block;
+	width: 200px;
+	padding: 15px;
 	margin-top: 20px;
 	margin-bottom: 20px;
+	cursor: pointer;
+	user-select: none;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #303030;
+	border-radius: 25px;
+}
+
+.menu-button img {
+	position: relative;
+	display: inline-block;	
+	width: 25px;
+	height: 25px;
+	vertical-align: top;
+}
+
+.menu-button div {
+	position: relative;
+	display: inline-block;
+	width: fit-content;
+	height: 25px;
 	font-size: 16px;
 	font-weight: 600;
+	line-height: 25px;
+	vertical-align: top;
+}
+
+.menu-button:hover {
+	background-color: #f0f0f0;
+}
+
+.menu-button:active {
+	background-color: #c0c0c0;
 }
 
 #footer {
@@ -414,20 +466,10 @@ input, select, textarea {
 	text-decoration: none;
 }
 
-.button:hover {
-	background-color: #303030;
-	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
-.button:active {
-	background-color: #505050;
-	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
 .option-menu {
 	position: relative;
 	display: block;
-	width: 300px;
+	width: fit-content;
 	height: fit-content;
 	margin-left: auto;
 	margin-right: auto;
@@ -469,16 +511,12 @@ select:focus, input[type="text"]:focus {
 	border-color: #303030;
 }
 
-.option-menu .button {
-	width: 200px;
-	height: 24px;
-	line-height: 24px;
+.option-menu .menu-button {
+	width: 180px;
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 50px;
 	margin-bottom: 20px;
-	font-size: 16px;
-	font-weight: 600;
 }
 
 #nickname {
@@ -503,16 +541,30 @@ select:focus, input[type="text"]:focus {
 		<div id="header">
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheata</i></div>
-			<div id="settings" aria-label="Settings"></div>
-			<div id="about" aria-label="About"></div>
+			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" aria-label="Settings" />
+			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" aria-label="About" />
 		</div>
 		<div id="screen-container">
 			<div id="menu-screen" class="screen">
-				<div id="menu">
-					<div id="continue" class="button" style="display: none;">Continue</div>
-					<div id="single-player" class="button">Single Player</div>
-					<div id="local-multiplayer" class="button">Local Multiplayer</div>
-					<div id="online-multiplayer" class="button">Online Multiplayer</div>
+				<div id="menu-a">
+					<div id="menu-b">
+						<div id="continue" class="menu-button" style="display: none;">
+							<img src="res/play.svg" width="25" height="25" />
+							<div>Continue</div>
+						</div>
+						<div id="single-player" class="menu-button">
+							<img src="res/single.svg" width="25" height="25" />
+							<div>Single Player</div>
+						</div>
+						<div id="local-multiplayer" class="menu-button">
+							<img src="res/local.svg" width="25" height="25" />
+							<div>Local Multiplayer</div>
+						</div>
+						<div id="online-multiplayer" class="menu-button">
+							<img src="res/online.svg" width="25" height="25" />
+							<div>Online Multiplayer</div>
+						</div>
+					</div>
 				</div>
 				<div id="footer">©2022 ChessCheata, created by <a href="https://www.github.com/ruochenjia">Ruochen Jia</a></div>
 			</div>
@@ -577,7 +629,10 @@ select:focus, input[type="text"]:focus {
 						<option value="15">15</option>
 						<option value="0" selected="true">Until timeout</option>
 					</select>
-					<div id="play" class="button">Play</div>
+					<div id="play" class="menu-button">
+						<img src="res/play.svg" width="25" height="25" />
+						<div>Play</div>
+					</div>
 				</div>
 			</div>
 			<div id="online-option-screen" class="screen" style="visibility: hidden;">

@@ -77,19 +77,11 @@ socket.on("register", () => {
 		clientId = storage.clientId = genCliId();
 
 	socket.emit("client_id", clientId);
-
-	// update online players every second
-	setInterval(() => {
-		socket.emit("req_users");
-	}, 1000);
 });
 socket.on("invalid_id", () => {
 	let clientId = genCliId();
 	storage.clientId = clientId;
 	socket.emit("client_id", clientId);
-});
-socket.on("users", (...args) => {
-	$("#players").text(args[0].length);
 });
 socket.on("error_quick_match", (...args) => {
 	alert(args[0], "Error");

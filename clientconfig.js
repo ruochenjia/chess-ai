@@ -1,5 +1,5 @@
 const clientConfig = {
-	server: "https://chesscheata.gq/",
+	server: "https://a54.chesscheata.gq/",
 	debug: true,
 	cacheName: "chesscheata",
 	cacheVersion: "0.1.0",
