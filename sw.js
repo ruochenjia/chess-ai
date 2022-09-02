@@ -1,27 +1,30 @@
 import { clientConfig } from "./clientconfig.js";
 
-const cacheName =  `${self.location.hostname}-${clientConfig.cacheName}`;
+const cacheName =  `${self.location.hostname}-${clientConfig.cacheName}-${clientConfig.cacheVersion}`;
 
 async function install() {
 	let cache = await caches.open(cacheName);
 	await cache.addAll(clientConfig.cacheList);
 }
 
+async function cache(request, response) {
+	// cross origin responses
+	if (response.status == 0)
+		return;
+
+	try {
+		let cache = await caches.open(cacheName);
+		await cache.put(request, response.clone());
+	} catch(err) {
+		// ignore - this is usually caused by an unsupported request method
+	}
+}
+
 async function fetchRe({ request }) {
 	let response = await caches.match(request);
 	if (response == null) {
 		response = await fetch(request);
-
-		// cross origin responses
-		if (response.status == 0)
-			return response;
-
-		try {
-			let cache = await caches.open(cacheName);
-			await cache.put(request, response.clone());
-		} catch(err) {
-			// ignore - this is usually caused by an unsupported request method
-		}
+		cache(request, response);
 	}
 
 	return new Response(response.body, {
@@ -36,10 +39,21 @@ async function fetchRe({ request }) {
 	});
 }
 
+async function removeOldCaches() {
+	for (let k of await caches.keys()) {
+		if (k != cacheName)
+			await caches.delete(k);
+	}
+}
+
 self.addEventListener("install", (event) => {
 	event.waitUntil(install());
 });
 
 self.addEventListener("fetch", (event) => {
 	event.respondWith(fetchRe(event));
+});
+
+self.addEventListener("activate", (event) => {
+	event.waitUntil(removeOldCaches());
 });

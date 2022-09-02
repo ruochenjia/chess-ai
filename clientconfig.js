@@ -1,4 +1,9 @@
 const clientConfig = {
+	server: "https://chesscheata.gq/",
+	debug: true,
+	cacheName: "chesscheata",
+	cacheVersion: "0.1.0",
+	cacheList: [],
 	headers: {
 		"Access-Control-Allow-Origin": "*",
 		"Access-Control-Allow-Methods": "GET",
@@ -8,11 +13,7 @@ const clientConfig = {
 		"Referrer-Policy": "no-referrer",
 		"X-Content-Type-Options": "nosniff",
 		"X-Frame-Options": "SAMEORIGIN"
-	},
-	server: "https://chesscheata.gq/",
-	debug: true,
-	cacheName: "chesscheata",
-	cacheList: []
+	}
 };
 
 export { clientConfig };

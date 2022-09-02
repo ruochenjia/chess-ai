@@ -78,16 +78,30 @@ input, select, textarea {
 	vertical-align: top;
 }
 
-#online-players {
+#settings {
 	position: absolute;
 	display: block;
-	width: fit-content;
-	height: fit-content;
+	width: 40px;
+	height: 40px;
+	right: 60px;
+	top: 15px;
+	cursor: pointer;
+	background-image: url("res/settings.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+#about {
+	position: absolute;
+	display: block;
+	width: 40px;
+	height: 40px;
 	right: 10px;
-	top: 10px;
-	line-height: 50px;
-	font-size: 18px;
-	font-weight: 600;
+	top: 15px;
+	cursor: pointer;
+	background-image: url("res/about.svg");
+	background-size: contain;
+	background-repeat: no-repeat;	
 }
 
 #screen-container {
@@ -489,7 +503,8 @@ select:focus, input[type="text"]:focus {
 		<div id="header">
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheata</i></div>
-			<div id="online-players">Online Players: <span id="players">0</span></div>
+			<div id="settings" aria-label="Settings"></div>
+			<div id="about" aria-label="About"></div>
 		</div>
 		<div id="screen-container">
 			<div id="menu-screen" class="screen">
