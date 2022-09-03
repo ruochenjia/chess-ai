@@ -127,7 +127,7 @@ $("#board").on("touchmove touchend touchstart", (e) => {
 	if (e.cancelable)
 		e.preventDefault();
 });
-$("#continue").on("click", async () => {
+$("#continue").on("click", () => {
 	let cfg = storage.savedGame;
 	if (cfg == null) {
 		alert("Internal error", "Error");
@@ -140,20 +140,20 @@ $("#continue").on("click", async () => {
 	switch (cfg.mode) {
 		case "single":
 			$("#local").css("display", "block");
-			$("#single").css("display", "block");
-			$("#show-hint").prop("checked", storage.getItem("showHint", false));
+			$("#show-hint").css("display", "inline-block");
 			engine.write("setoption name Skill Level value " + storage.skillLevel);
 
 			if (cfg.color == "w")
 				board.orientation("white");
 			else
 				board.orientation("black");
-			showHint();
+
 			break;
 		case "local":
 			$("#local").css("display", "block");
-			$("#sp").css("display", "none");
+			$("#show-hint").css("display", "none");
 			board.orientation("white");
+			break;
 	}
 
 	game.reset();
@@ -170,23 +170,21 @@ $("#continue").on("click", async () => {
 	$("#fen").val(game.fen());
 	changeScreen("#game-screen");
 
-	if (cfg.mode == "single") {
-		if (cfg.color != game.turn())
-			await makeBestMove();
-		showHint();
+	if (cfg.mode == "single" && cfg.color != game.turn()) {
+		makeBestMove();
 	}
 });
 $("#single-player").on("click", () => {
 	changeScreen("#option-screen");
 	$(`input[type=\"radio\"][name=\"color\"][value=\"${storage.getItem("color", "r")}\"]`).prop("checked", true);
-	$("#skill-level").val(storage.getItem("skillLevel", "20"));
+	$("#skill-level").val(storage.getItem("skillLevel", "1"));
 	$("#search-time").val(storage.getItem("searchTime", "2"));
 	$("#search-depth").val(storage.getItem("searchDepth", "0"));
 });
 $("#local-multiplayer").on("click", () => {
 	config.mode = "local";
 	$("#local").css("display", "block");
-	$("#sp").css("display", "none");
+	$("#show-hint").css("display", "none");
 	$("#load").css("display", "block");
 	changeScreen("#game-screen");
 	newGame();
@@ -212,7 +210,7 @@ $("#search-depth").on("change", () => {
 $("#nickname").on("change", () => {
 	storage.nickname = $("#nickname").val();
 });
-$("#play").on("click", async () => {
+$("#play").on("click", () => {
 	let color = $("input[type=\"radio\"][name=\"color\"]:checked").val();
 	if (color == "r")
 		color = Math.random() > 0.5 ? "w" : "b";
@@ -223,9 +221,9 @@ $("#play").on("click", async () => {
 	config.mode = "single";
 
 	$("#local").css("display", "block");
-	$("#sp").css("display", "block");
+	$("#show-hint").css("display", "inline-block");
 	$("#load").css("display", "block");
-	$("#show-hint").prop("checked", storage.getItem("showHint", false));
+
 	engine.write("setoption name Skill Level value " + $("#skill-level :selected").val());
 	changeScreen("#game-screen");
 	newGame();
@@ -234,10 +232,8 @@ $("#play").on("click", async () => {
 		board.orientation("white");
 	else {
 		board.orientation("black");
-		await makeBestMove();
+		makeBestMove();
 	}
-
-	showHint();
 });
 $("#quick-match").on("click", () => {
 	if (!socket.connected) {
@@ -260,7 +256,6 @@ $("#undo").on("click", () => {
 	if (undo()) {
 		removeHighlights();
 		updateAdvantage();
-		showHint();
 		$("#pgn").text(game.pgn());
 		$("#fen").val(game.fen());
 	} else alert("Nothing to undo");
@@ -269,18 +264,18 @@ $("#redo").on("click", () => {
 	if (redo()) {
 		removeHighlights();
 		updateAdvantage();
-		showHint();
 		$("#pgn").text(game.pgn());
 		$("#fen").val(game.fen());
 	} else alert("Nothing to redo");
 });
-$("#restart").on("click", async () => {
+$("#restart").on("click", () => {
 	newGame();
-	if (config.mode == "single") {
-		if (config.color != "w")
-			await makeBestMove();
-		showHint();
+	if (config.mode == "single" && config.color != "w") {
+		makeBestMove();
 	}
+});
+$("#show-hint").on("click", () => {
+	showHint();
 });
 $("#menu-btn, #home").on("click", () => {
 	changeScreen("#menu-screen");
@@ -292,21 +287,15 @@ $("#menu-btn, #home").on("click", () => {
 	if (config.mode == "online")
 		socket.emit("req_disconnect");
 });
-$("#load").on("click", async () => {
+$("#load").on("click", () => {
 	let fen = $("#fen").val();
 
-	if (game.load(fen)) {
+	if (game.load(fen) && !game.game_over()) {
 		resetBoard();
-		if (config.mode == "single") {
-			if (config.color != game.turn())
-				await makeBestMove();
-			showHint();
+		if (config.mode == "single" && config.color != game.turn()) {
+			makeBestMove();
 		}
 	} else alert("Invalid FEN string", "Error");
-});
-$("#show-hint").on("change", () => {
-	storage.showHint = $("#show-hint").is(":checked");
-	showHint();
 });
 // chessboard resize handler
 $(window).on("resize", resizeBoard);
@@ -518,7 +507,7 @@ async function getBestMove() {
 async function showHint() {
 	$("#board .square-55d63").removeClass('highlight-hint');
 
-	if ($("#show-hint").is(":checked") && !game.game_over()) {
+	if (!game.game_over()) {
 		let move = config.ponderMove;
 		if (move == null)
 			move = await getBestMove();
@@ -563,6 +552,7 @@ function makeMove(from, to, promotion) {
 	config.globalSum = sum;
 	updateAdvantage();
 	highlightMove(move);
+	$("#board .square-55d63").removeClass('highlight-hint');
 	$("#pgn").text(game.pgn());
 	$("#fen").val(game.fen());
 
@@ -581,9 +571,7 @@ function onDrop(source, target) {
 		return "snapback";
 
 	if (!move.status && config.mode == "single") {
-		makeBestMove().then(() => {
-			showHint();
-		});
+		makeBestMove();
 	}
 
 	if (config.mode == "online") {
