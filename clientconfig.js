@@ -2,7 +2,7 @@ const clientConfig = {
 	server: "https://a54.chesscheata.gq/",
 	debug: true,
 	cacheName: "chesscheata",
-	cacheVersion: "0.1.1",
+	cacheVersion: "0.1.2",
 	cacheList: [],
 	headers: {
 		"Access-Control-Allow-Origin": "*",
