@@ -3,6 +3,7 @@ import { io } from "./lib/socket.io.esm.min.js";
 import { clientConfig } from "./clientconfig.js";
 import { UCIEngine } from "./uci.js";
 import { storage } from "./storage.js";
+import { ColorCode } from "./colorcode.js";
 
 (async () => {
 // default error handler
@@ -121,12 +122,16 @@ socket.on("game_abort", () => {
 });
 
 
-// event listeners
+//  EVENT LISTENERS
+
+// game
 $("#board").on("touchmove touchend touchstart", (e) => {
 	// prevent scroll while dragging pieces
 	if (e.cancelable)
 		e.preventDefault();
 });
+
+// menu
 $("#continue").on("click", () => {
 	let cfg = storage.savedGame;
 	if (cfg == null) {
@@ -195,6 +200,8 @@ $("#online-multiplayer").on("click", () => {
 	$("#nickname").val(storage.getItem("nickname", "Player"));
 	$("#player-id").text(storage.clientId);
 });
+
+// single player option menu
 $("input[type=\"radio\"][name=\"color\"]").on("change", () => {
 	storage.color = $("input[type=\"radio\"][name=\"color\"]:checked").val();
 });
@@ -235,6 +242,8 @@ $("#play").on("click", () => {
 		makeBestMove();
 	}
 });
+
+// online option menu
 $("#quick-match").on("click", () => {
 	if (!socket.connected) {
 		alert("", "Server Connection Failure");
@@ -252,6 +261,8 @@ $("#cancel").on("click", () => {
 	socket.emit("cancel_quick_match");
 	changeScreen("#menu-screen");
 });
+
+// game controls
 $("#undo").on("click", () => {
 	if (undo()) {
 		removeHighlights();
@@ -297,12 +308,142 @@ $("#load").on("click", () => {
 		}
 	} else alert("Invalid FEN string", "Error");
 });
+
+// header buttons
+$("#settings").on("click", () => {
+	changeScreen("#settings-screen");
+
+	let darkSquareColor = ColorCode.parse(storage.getItem("darkSquareColor", "#b58863"));
+	let lightSquareColor = ColorCode.parse(storage.getItem("lightSquareColor", "#f0d9b5"));
+	let moveWhiteColor = ColorCode.parse(storage.getItem("moveWhiteColor", "#0000ff"));
+	let moveBlackColor = ColorCode.parse(storage.getItem("moveBlackColor", "#ff0000"));
+	let hintColor = ColorCode.parse(storage.getItem("hintColor", "#ffff00"));
+	let moveableSquaresColor = ColorCode.parse(storage.getItem("moveableSquaresColor", "#008000"));
+
+	$("#dark-square-color").val(darkSquareColor.toString());
+	$("#light-square-color").val(lightSquareColor.toString());
+	$("#move-white-color").val(moveWhiteColor.toString());
+	$("#move-black-color").val(moveBlackColor.toString());
+	$("#hint-color").val(hintColor.toString());
+	$("#moveable-squares-color").val(moveableSquaresColor.toString());
+
+	$("#dark-square-color-preview").css("background-color", darkSquareColor.cssString);
+	$("#light-square-color-preview").css("background-color", lightSquareColor.cssString);
+	$("#move-white-color-preview").css("background-color", moveWhiteColor.cssString);
+	$("#move-black-color-preview").css("background-color", moveBlackColor.cssString);
+	$("#hint-color-preview").css("background-color", hintColor.cssString);
+	$("#moveable-squares-color-preview").css("background-color", moveableSquaresColor.cssString);
+});
+$("#about").on("click", () => {
+	alert(`ChessCheata version ${clientConfig.cacheVersion}, open source on <a href="https://www.github.com/ruochenjia/chesscheata" target="_blank">GitHub</a>.`, "About");
+});
+
+// settings menu
+$("#dark-square-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.darkSquareColor = code.toString();
+	$("#dark-square-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+	
+});
+$("#light-square-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.lightSquareColor = code.toString();
+	$("#light-square-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+});
+$("#move-white-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.moveWhiteColor = code.toString();
+	$("#move-white-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+});
+$("#move-black-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.moveBlackColor = code.toString();
+	$("#move-black-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+});
+$("#hint-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.hintColor = code.toString();
+	$("#hint-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+});
+$("#moveable-squares-color").on("blur", (e) => {
+	let code = ColorCode.parse($(e.target).val());
+	if (code == null) {
+		alert("Invalid color code");
+		return;
+	}
+	storage.moveableSquaresColor = code.toString();
+	$("#moveable-squares-color-preview").css("background-color", code.cssString);
+	applyBoardStyles();
+});
+$("#auto-flip-lm").on("change", (e) => {
+	storage.autoFlipLm = $(e.target).is(":checked");
+});
+
 // chessboard resize handler
 $(window).on("resize", resizeBoard);
 
 function changeScreen(id) {
 	$(".screen").css("visibility", "hidden");
 	$(id).css("visibility", "visible");
+}
+
+function cssStyleRules() {
+	if (window.__cached != null)
+		return window.__cached;
+
+	let rules = {};
+	for (let s of document.styleSheets) {
+		for (let r of s.cssRules) {
+			if (r instanceof CSSStyleRule)
+				rules[r.selectorText] = r;
+		}
+	}
+
+	return window.__cached = rules;
+}
+
+function applyBoardStyles() {
+	let darkSquareColor = ColorCode.parse(storage.getItem("darkSquareColor", "#b58863")).cssString;
+	let lightSquareColor = ColorCode.parse(storage.getItem("lightSquareColor", "#f0d9b5")).cssString;
+	let moveWhiteColor = ColorCode.parse(storage.getItem("moveWhiteColor", "#0000ff")).cssString;
+	let moveBlackColor = ColorCode.parse(storage.getItem("moveBlackColor", "#ff0000")).cssString;
+	let hintColor = ColorCode.parse(storage.getItem("hintColor", "#ffff00")).cssString;
+	let moveableSquaresColor = ColorCode.parse(storage.getItem("moveableSquaresColor", "#008000")).cssString;
+
+	let r = cssStyleRules();
+	r[".white-1e1d7"].style.color = darkSquareColor;
+	r[".black-3c85d"].style.color = lightSquareColor;
+	r[".white-1e1d7"].style.backgroundColor = lightSquareColor;
+	r[".black-3c85d"].style.backgroundColor = darkSquareColor;
+	r[".highlight-white"].style.borderColor = moveWhiteColor;
+	r[".highlight-black"].style.borderColor = moveBlackColor;
+	r[".highlight-hint"].style.borderColor = hintColor;
+	r[".highlight-moveable"].style.borderColor = moveableSquaresColor;
 }
 
 function resizeBoard() {
@@ -315,7 +456,9 @@ function resizeBoard() {
 	board.resize();
 }
 
+applyBoardStyles();
 resizeBoard();
+
 if (storage.savedGame != null)
 	$("#continue").css("display", "block");
 
@@ -570,12 +713,19 @@ function onDrop(source, target) {
 	if (move == null)
 		return "snapback";
 
-	if (!move.status && config.mode == "single") {
-		makeBestMove();
-	}
-
-	if (config.mode == "online") {
-		socket.emit("make_move", move);
+	switch (config.mode) {
+		case "single":
+			if (!move.status) {
+				makeBestMove();
+			}
+			break;
+		case "local":
+			if (!move.status && storage.getItem("autoFlipLm", "true")) {
+				board.orientation(move.color == "w" ? "black" : "white");
+			}
+			break;
+		case "online":
+			socket.emit("make_move", move);
 	}
 }
 

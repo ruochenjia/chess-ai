@@ -278,7 +278,7 @@ input, select, textarea {
 }
 
 .highlight-hint {
-	box-shadow: inset 0px 0px 3px 3px #ffff00;
+	border-color: #ffff00;
 }
 
 .highlight-moveable {
@@ -326,6 +326,17 @@ input, select, textarea {
 	margin: auto;
 	line-height: 36px;
 	font-size: 24px;
+	font-weight: 600;
+}
+
+.block-title2 {
+	position: relative;
+	display: block;
+	width: fit-content;
+	height: fit-content;
+	margin: auto;
+	line-height: 24px;
+	font-size: 18px;
 	font-weight: 600;
 }
 
@@ -505,6 +516,7 @@ input[type="radio"], input[type="checkbox"] {
 	width: fit-content;
 	height: fit-content;
 	accent-color: #008000;
+	vertical-align: middle;
 }
 
 label {
@@ -543,8 +555,15 @@ select:focus, input[type="text"]:focus {
 	margin-bottom: 20px;
 }
 
-#nickname {
-	width: 150px;
+.color-preview {
+	position: relative;
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	vertical-align: middle;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #c0c0c0;
 }
 
 #loading-screen, #noscript-screen {
@@ -654,7 +673,7 @@ select:focus, input[type="text"]:focus {
 			<div id="online-option-screen" class="screen" style="visibility: hidden;">
 				<div class="option-menu">
 					<label for="nickname">Nickname: </label>
-					<input type="text" id="nickname" value="Player" placeholder="Nickname" />
+					<input type="text" id="nickname" value="Player" placeholder="Nickname" size="20" maxlength="20" />
 					<br />
 					<label for="player-id">Player ID: </label>
 					<span id="player-id"></span>
@@ -695,6 +714,37 @@ select:focus, input[type="text"]:focus {
 				<div class="text-screen-text">Waiting too long? Invite your friends now to get faster matching.</div>
 				<div id="cancel" class="menu-button" style="text-align: center; margin: auto;">
 					<div>Cancel</div>
+				</div>
+			</div>
+			<div id="settings-screen" class="screen" style="visibility: hidden;">
+				<div class="option-menu">
+					<div class="block-title" style="margin-bottom: 10px;">Appearance</div>
+					<label for="dark-square-color">Dark Square Color: </label>
+					<div id="dark-square-color-preview" class="color-preview"></div>
+					<input id="dark-square-color" type="text" value="#b58863" placeholder="#b58863" size="9" maxlength="9" />
+					<br />
+					<label for="light-square-color">Light Square Color: </label>
+					<div id="light-square-color-preview" class="color-preview"></div>
+					<input id="light-square-color" type="text" value="#f0d9b5" placeholder="#f0d9b5" size="9" maxlength="9" />
+					<div class="block-title2" style="margin-top: 10px; margin-bottom: 10px;">Highlight Colors</div>
+					<label for="move-white-color">Move (White): </label>
+					<div id="move-white-color-preview" class="color-preview"></div>
+					<input id="move-white-color" type="text" value="#0000ff" placeholder="#0000ff" size="9" maxlength="9" />
+					<br />
+					<label for="move-black-color">Move (Black): </label>
+					<div id="move-black-color-preview" class="color-preview"></div>
+					<input id="move-black-color" type="text" value="#ff0000" placeholder="#ff0000" size="9" maxlength="9" />
+					<br />
+					<label for="hint-color">Hint: </label>
+					<div id="hint-color-preview" class="color-preview"></div>
+					<input id="hint-color" type="text" value="#ffff00" placeholder="#ffff00" size="9" maxlength="9" />
+					<br />
+					<label for="moveable-squares-color">Moveable Squares: </label>
+					<div id="moveable-squares-color-preview" class="color-preview"></div>
+					<input id="moveable-squares-color" type="text" value="#008000" placeholder="#008000" size="9" maxlength="9" />
+					<div class="block-title" style="margin-top: 40px; margin-bottom: 10px;">Game</div>
+					<input id="auto-flip-lm" type="checkbox" checked="true" />
+					<label for="auto-flip-lm">Auto Flip in Local Multiplayer Mode</label>
 				</div>
 			</div>
 			<div id="loading-screen" class="screen">
