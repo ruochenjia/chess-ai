@@ -12,7 +12,7 @@ const clientConfig = {
 		"Cross-Origin-Opener-Policy": "same-origin",
 		"Referrer-Policy": "no-referrer",
 		"X-Content-Type-Options": "nosniff",
-		"X-Frame-Options": "SAMEORIGIN"
+		//"X-Frame-Options": "SAMEORIGIN"
 	}
 };
 
