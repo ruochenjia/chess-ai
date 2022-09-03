@@ -38,8 +38,9 @@ body {
 	font-weight: 500;
 	font-style: normal;
 	color: #303030;
-	background-image: url("res/bg.jpg");
-	background-repeat: no-repeat;
+	background-color: #ffffff;
+  /*background-image: url("res/bg.jpg");
+	background-repeat: no-repeat;*/
 }
 
 input, select, textarea {
@@ -51,10 +52,10 @@ input, select, textarea {
 }
 
 #header {
-	position: relative;
+	position: absolute;
 	display: block;
 	width: calc(100% - 20px);
-	height: fit-content;
+	height: 50px;
 	padding: 10px;
 	border-bottom-style: solid;
 	border-bottom-width: 3px;
@@ -62,26 +63,39 @@ input, select, textarea {
 }
 
 #logo-img {
-	position: relative;
-	display: inline-block;
+	position: absolute;
+	display: block;
 	width: 50px;
 	height: 50px;
-	vertical-align: top;
+	left: 10px;
+	top: 10px;
 	background-image: url("res/logo.svg");
 	background-size: contain;
 	background-repeat: no-repeat;
 }
 
 #logo {
-	position: relative;
-	display: inline-block;
+	position: absolute;
+	display: block;
 	width: fit-content;
-	height: fit-content;
-	line-height: 50px;
-	font-size: 36px;
+	height: 30px;
+	left: 70px;
+	top: 10px;
+	line-height: 30px;
+	font-size: 24px;
 	font-weight: 600;
 	user-select: none;
-	vertical-align: top;
+}
+
+#sublogo {
+	position: absolute;
+	display: block;
+	width: fit-content;
+	height: fit-content;
+	left: 70px;
+	top: 40px;
+	line-height: 20px;
+	user-select: none;
 }
 
 #home {
@@ -551,6 +565,7 @@ select:focus, input[type="text"]:focus {
 		<div id="header">
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheata</i></div>
+			<div id="sublogo">No Ads, Free Forever</div>
 			<img id="home" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
 			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" aria-label="Settings" />
 			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" aria-label="About" />

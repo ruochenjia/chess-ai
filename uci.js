@@ -16,34 +16,18 @@ const engines = {
 				return window.stockfish;
 			
 			// wasm module
-			if (typeof SharedArrayBuffer == "undefined") {
-				window.location.reload();
-				return null;
-			}
 			let script = document.createElement("script");
-			script.src = "lib/stockfish.js";
+			if (typeof SharedArrayBuffer == "undefined") {
+				script.src = "lib/stockfish/singlethread/stockfish.js";
+				console.warn("SharedArrayBuffer is not supported");
+			} else script.src = "lib/stockfish/stockfish.js";
 			script.type = "text/javascript";
 			script.async = true;
 			document.getElementsByTagName("head")[0].appendChild(script);
 			await new Promise(resolve => {
 				script.onload = resolve;
 			});
-
-			let stockfish = await Stockfish();
-			let messages = [];
-
-			stockfish.addMessageListener(msg => {
-				messages.push(msg);
-			});
-
-			return {
-				message: () => {
-					if (messages.length > 0)
-						return messages.shift();
-					return null;
-				},
-				postMessage: stockfish.postMessage
-			};
+			return await Stockfish();
 		}
 	}
 };
