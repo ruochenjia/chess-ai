@@ -335,6 +335,8 @@ $("#settings").on("click", () => {
 	$("#move-black-color-preview").css("background-color", moveBlackColor.cssString);
 	$("#hint-color-preview").css("background-color", hintColor.cssString);
 	$("#moveable-squares-color-preview").css("background-color", moveableSquaresColor.cssString);
+
+	$("#auto-flip-lm").prop("checked", storage.getItem("autoFlipLm", "true"));
 });
 $("#about").on("click", () => {
 	alert(`ChessCheata version ${clientConfig.cacheVersion}, open source on <a href="https://www.github.com/ruochenjia/chesscheata" target="_blank">GitHub</a>.`, "About");
