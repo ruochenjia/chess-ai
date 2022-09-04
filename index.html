@@ -609,6 +609,10 @@ select:focus, input[type="text"]:focus {
 							<img src="res/online.svg" width="25" height="25" />
 							<div>Online Multiplayer</div>
 						</div>
+						<div id="puzzles" class="menu-button">
+							<img src="res/puzzle.svg" width="25" height="25" />
+							<div>Puzzles</div>
+						</div>
 					</div>
 				</div>
 				<div id="footer">ChessCheata v<span id="version"></span> | Created by <a href="https://www.github.com/ruochenjia" target="_blank">Ruochen Jia</a> | <a href="https://www.github.com/ruochenjia/chesscheata" target="_blank">GitHub</a></div>
@@ -757,9 +761,9 @@ select:focus, input[type="text"]:focus {
 			</noscript>
 		</div>
 		<script type="module">
-"use strict";
+import { Lock } from "./main.js";
 
-import "./main.js";
+Lock.lock();
 		</script>
 	</body>
 </html>

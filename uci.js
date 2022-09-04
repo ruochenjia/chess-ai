@@ -1,14 +1,6 @@
 
-const engines = {
-	stub: {
-		init: async () => {
-			return {
-				message: () => null,
-				postMessage: () => {}
-			};
-		}
-	},
 
+const engines = {
 	stockfish: {
 		init: async () => {
 			// native module
@@ -32,94 +24,45 @@ const engines = {
 	}
 };
 
-
 function UCIEngine() {
 	let base = null;
 
 	/**
-	 * @param {string} name 
+	 * @param {String} name 
 	 */
-	async function init(name) {
+	this.init = async (name) => {
 		base = await engines[name].init();
-	}
+	};
 
 	/**
-	 * @returns {string | null}
+	 * @returns {String | null}
 	 */
-	function read() {
+	this.read = () => {
 		return base.message();
-	}
+	};
 
 	/**
-	 * @param {string} text 
+	 * @param {String} text 
 	 */
-	function write(text) {
+	this.write = (text) => {
 		base.postMessage(text);
-	}
+	};
 
 	/**
-	 * @param {string} text 
-	 * @returns {Promise<string>}
+	 * @param {String} text 
+	 * @returns {Promise<String>}
 	 */
-	function grep(text) {
-		return new Promise((resolve) => {
+	this.grep = (text) => {
+		return new Promise(resolve => {
 			let timer = setInterval(() => {
 				let msg = this.read();
 				if (msg != null && msg.includes(text)) {
 					clearInterval(timer);
 					resolve(msg);
 				}
-			}, 50);
+			}, 30);
 		});
-	}
-
-	return {
-		init,
-		read,
-		write,
-		grep
 	};
 }
-
-$("body").on("contextmenu", (e) => {
-	e.preventDefault();
-});
-
-$("body").on("keydown", (e) => {
-	function ac() {
-		let ctrl = e.ctrlKey || e.metaKey;
-		let shift = e.shiftKey;
-		let code = e.keyCode;
-
-		if (ctrl) {
-			if (shift) {
-				switch (code) {
-					case 73: // ctrl+shift+i
-					case 74: // ctrl+shift+j
-						return true;
-				}
-			}
-
-			switch (code) {
-				case 83: // ctrl+s
-				case 85: // ctrl+u
-					return true;
-			}
-		}
-
-		switch (code) {
-			case 123: // f12
-				return true;
-		}
-	}
-
-	if (ac()) {
-		e.preventDefault();
-		e.stopPropagation();
-		return false;
-	}
-
-	return true;
-});
 
 export { UCIEngine };

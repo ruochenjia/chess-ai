@@ -5,7 +5,6 @@ import { UCIEngine } from "./uci.js";
 import { storage } from "./storage.js";
 import { ColorCode } from "./colorcode.js";
 
-(async () => {
 // default error handler
 window.onerror = (msg, src, lineno, colno, e) => {
 	alert(msg, "Error");
@@ -44,7 +43,7 @@ Object.merge = (a, b) => {
 		a[k] = b[k];
 };
 
-const engine = UCIEngine();
+const engine = new UCIEngine();
 const board = Chessboard("board", {
 	draggable: true,
 	position: "start",
@@ -199,6 +198,9 @@ $("#online-multiplayer").on("click", () => {
 	changeScreen("#online-option-screen");
 	$("#nickname").val(storage.getItem("nickname", "Player"));
 	$("#player-id").text(storage.clientId);
+});
+$("#puzzles").on("click", () => {
+	alert("Coming soon");
 });
 
 // single player option menu
@@ -787,4 +789,10 @@ function genCliId() {
 $("#version").text(clientConfig.cacheVersion);
 $("#loading-screen").remove();
 
-})();
+// lock
+export const Lock = {
+	lock: () => {
+		console.log("%cChessCheata", `background-color:#800000;border:3px solid #ffff00;border-radius:10px;color:#ffffff;display:block;font-family:Ubuntu;font-size:24px;font-stretch:normal;font-style:normal;font-weight:600;height:fit-content;margin:10px;padding:10px;position:relative;text-align:start;text-decoration:none;width:fit-content`);
+		console.log("%cPage Verified", `position: relative;display: block;width: fit-content;height: fit-content;color: #ffffff;background-color: #008000;font-size: 14px;font-weight: 600;font-family: "Ubuntu Mono";font-stretch: normal;text-align: start;text-decoration: none;`);
+	}
+};
