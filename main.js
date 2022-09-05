@@ -339,7 +339,7 @@ $("#settings").on("click", () => {
 	$("#auto-flip-lm").prop("checked", storage.getItem("autoFlipLm", "true"));
 });
 $("#about").on("click", () => {
-	alert(`ChessCheata version ${clientConfig.cacheVersion}, open source on <a href="https://www.github.com/ruochenjia/chesscheata" target="_blank">GitHub</a>.`, "About");
+	alert(`ChessCheta version ${clientConfig.cacheVersion}, open source on <a href="https://www.github.com/ruochenjia/chesscheta" target="_blank">GitHub</a>.`, "About");
 });
 
 // settings menu
@@ -794,7 +794,7 @@ $("#loading-screen").remove();
 // lock
 export const Lock = {
 	lock: () => {
-		console.log("%cChessCheata", `background-color:#800000;border:3px solid #ffff00;border-radius:10px;color:#ffffff;display:block;font-family:Ubuntu;font-size:24px;font-stretch:normal;font-style:normal;font-weight:600;height:fit-content;margin:10px;padding:10px;position:relative;text-align:start;text-decoration:none;width:fit-content`);
+		console.log("%cChessCheta", `background-color:#800000;border:3px solid #ffff00;border-radius:10px;color:#ffffff;display:block;font-family:Ubuntu;font-size:24px;font-stretch:normal;font-style:normal;font-weight:600;height:fit-content;margin:10px;padding:10px;position:relative;text-align:start;text-decoration:none;width:fit-content`);
 		console.log("%cPage Verified", `position: relative;display: block;width: fit-content;height: fit-content;color: #ffffff;background-color: #008000;font-size: 14px;font-weight: 600;font-family: "Ubuntu Mono";font-stretch: normal;text-align: start;text-decoration: none;`);
 	}
 };
