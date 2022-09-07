@@ -27,6 +27,29 @@
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
+::-webkit-scrollbar {
+	position: absolute;
+	display: block;
+	width: 10px;
+	height: 100%;
+}
+
+::-webkit-scrollbar-track {
+	border-style: solid;
+	border-width: 1px;
+	border-color: rgba(0, 0, 0, 0.18);
+	border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, 0.18);
+	border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(0, 0, 0, 0.3);
+}
+
 body {
 	position: absolute;
 	display: block;

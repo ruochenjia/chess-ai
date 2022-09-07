@@ -11,7 +11,7 @@ function testLocalStorage() {
 	}
 }
 
-let storage = (() => {
+const storage = (() => {
 	let base;
 
 	if (testLocalStorage()) {

@@ -1,9 +1,9 @@
 {
 	"manifest_version": 2,
-	"name": "ChessCheata",
-	"short_name": "ChessCheata",
-	"description": "Online multiplayer chess game",
-	"version": "0.1.0",
+	"name": "ChessCheta",
+	"short_name": "ChessCheta",
+	"description": "Online Multiplayer Chess",
+	"version": "0.2.0",
 	"display": "fullscreen",
 	"orientation": "any",
 	"background_color": "#ffffff",
