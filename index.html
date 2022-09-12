@@ -3,10 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-		<meta http-equiv="Referrer-Policy" content="no-referrer" />
-		<meta name="referrer" content="no-referrer" />
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
-		<meta name="description" content="Online multiplayer / single player chess in HTML5, open source on GitHub, adless and free forever 𒌐𒌑𒌒𒌓𒌔𒍅𒎕񦙦򈢈򪪪򐤉￾" />
+		<meta name="description" content="Online multiplayer / single player chess in HTML5, open source on GitHub, adless and free forever" />
 		<meta name="keywords" content="chesscheta,chess,online,multiplayer,html5,game,open-source,free,no ads,adless" />
 		<base href="/" />
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
@@ -14,6 +12,7 @@
 		<script type="text/javascript" src="lib/jquery-3.6.1.min.js"></script>
 		<script type="text/javascript" src="lib/chessboard-1.0.0.min.js"></script>
 		<script type="text/javascript" src="lib/webalert/webalert.js"></script>
+		<script type="text/javascript" src="https://accounts.google.com/gsi/client"></script>
 		<title>ChessCheta - Online Multiplayer Chess</title>
 		<style type="text/css">
 @import url("res/ubuntu/ubuntu.css");
@@ -65,6 +64,13 @@ body {
   /*background-image: url("res/bg.jpg");
 	background-repeat: no-repeat;*/
 }
+
+/* @media (prefers-color-scheme: dark) {
+	body {
+		color: #ffffff;
+		background-color: #303030;
+	}
+} */
 
 input, select, textarea {
 	font-size: inherit;
@@ -119,6 +125,12 @@ input, select, textarea {
 	top: 40px;
 	line-height: 20px;
 	user-select: none;
+}
+
+#account {
+	position: absolute;
+	right: 160px;
+	top: 10px;
 }
 
 #home {
@@ -534,12 +546,38 @@ input, select, textarea {
 	margin-top: 100px;
 }
 
-input[type="radio"], input[type="checkbox"] {
+input[type=checkbox], input[type="radio"] {
 	position: relative;
-	width: fit-content;
-	height: fit-content;
-	accent-color: #008000;
+	width: 20px;
+	height: 20px;
 	vertical-align: middle;
+	border-style: solid;
+	border-color: #808080;
+	border-width: 1px;
+	outline: none;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+input[type="radio"] {
+	width: 16px;
+	height: 16px;
+	border-radius: 25px;
+}
+
+input[type="checkbox"]:checked {
+	background-color: #008000;
+	background-image: url("res/checkbox.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+input[type="radio"]:checked {
+	border: none;
+	background-image: url("res/radiobutton.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
 }
 
 label {
@@ -607,7 +645,8 @@ select:focus, input[type="text"]:focus {
 		<div id="header">
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheta</i></div>
-			<div id="sublogo">No Ads, Free Forever</div>
+			<div id="sublogo">VERS</div>
+			<img id="account" class="image-button" src="res/account.svg" width="30" height="30" aria-label="Account" />
 			<img id="home" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
 			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" aria-label="Settings" />
 			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" aria-label="About" />
@@ -772,6 +811,11 @@ select:focus, input[type="text"]:focus {
 					<div class="block-title" style="margin-top: 40px; margin-bottom: 10px;">Game</div>
 					<input id="auto-flip-lm" type="checkbox" checked="true" />
 					<label for="auto-flip-lm">Auto Flip in Local Multiplayer Mode</label>
+				</div>
+			</div>
+			<div id="account-management-screen" class="screen" style="visibility: hidden;">
+				<div class="option-menu">
+					
 				</div>
 			</div>
 			<div id="loading-screen" class="screen">

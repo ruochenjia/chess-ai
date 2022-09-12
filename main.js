@@ -4,6 +4,7 @@ import { clientConfig } from "./clientconfig.js";
 import { UCIEngine } from "./uci.js";
 import { storage } from "./storage.js";
 import { ColorCode } from "./colorcode.js";
+import { css } from "./cssutil.js";
 
 // default error handler
 window.onerror = (msg, src, lineno, colno, e) => {
@@ -119,6 +120,17 @@ socket.on("game_abort", () => {
 	alert("Player disconnected", "Game Aborted");
 	changeScreen("#menu-screen");
 });
+
+// google account init
+if (typeof google != "undefined") {
+	google.accounts.id.initialize({
+		client_id: "677364250175-7fd5e9m85ptnhk24si2emnfmmheklvok.apps.googleusercontent.com",
+		context: "use",
+		ux_mode: "popup",
+		nonce: "",
+		callback: googleOAuthCallback,
+	});
+} else console.warn("Google API is not available");
 
 
 //  EVENT LISTENERS
@@ -416,21 +428,6 @@ function changeScreen(id) {
 	$(id).css("visibility", "visible");
 }
 
-function cssStyleRules() {
-	if (window.__cached != null)
-		return window.__cached;
-
-	let rules = {};
-	for (let s of document.styleSheets) {
-		for (let r of s.cssRules) {
-			if (r instanceof CSSStyleRule)
-				rules[r.selectorText] = r;
-		}
-	}
-
-	return window.__cached = rules;
-}
-
 function applyBoardStyles() {
 	let darkSquareColor = ColorCode.parse(storage.getItem("darkSquareColor", "#b58863")).cssString;
 	let lightSquareColor = ColorCode.parse(storage.getItem("lightSquareColor", "#f0d9b5")).cssString;
@@ -439,15 +436,15 @@ function applyBoardStyles() {
 	let hintColor = ColorCode.parse(storage.getItem("hintColor", "#ffff00")).cssString;
 	let moveableSquaresColor = ColorCode.parse(storage.getItem("moveableSquaresColor", "#008000")).cssString;
 
-	let r = cssStyleRules();
-	r[".white-1e1d7"].style.color = darkSquareColor;
-	r[".black-3c85d"].style.color = lightSquareColor;
-	r[".white-1e1d7"].style.backgroundColor = lightSquareColor;
-	r[".black-3c85d"].style.backgroundColor = darkSquareColor;
-	r[".highlight-white"].style.borderColor = moveWhiteColor;
-	r[".highlight-black"].style.borderColor = moveBlackColor;
-	r[".highlight-hint"].style.borderColor = hintColor;
-	r[".highlight-moveable"].style.borderColor = moveableSquaresColor;
+	let r = css.rules;
+	r.get(".white-1e1d7").style.color = darkSquareColor;
+	r.get(".black-3c85d").style.color = lightSquareColor;
+	r.get(".white-1e1d7").style.backgroundColor = lightSquareColor;
+	r.get(".black-3c85d").style.backgroundColor = darkSquareColor;
+	r.get(".highlight-white").style.borderColor = moveWhiteColor;
+	r.get(".highlight-black").style.borderColor = moveBlackColor;
+	r.get(".highlight-hint").style.borderColor = hintColor;
+	r.get(".highlight-moveable").style.borderColor = moveableSquaresColor;
 }
 
 function resizeBoard() {
@@ -465,6 +462,10 @@ resizeBoard();
 
 if (storage.savedGame != null)
 	$("#continue").css("display", "block");
+
+function googleOAuthCallback(data) {
+	throw data;
+}
 
 function removeHighlights() {
 	$("#board .square-55d63").removeClass("highlight-white");
