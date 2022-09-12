@@ -8,10 +8,6 @@ async function install() {
 }
 
 async function cache(request, response) {
-	// cross origin responses
-	if (response.status == 0)
-		return;
-
 	try {
 		let cache = await caches.open(cacheName);
 		await cache.put(request, response.clone());
@@ -24,6 +20,9 @@ async function fetchRe({ request }) {
 	let response = await caches.match(request);
 	if (response == null) {
 		response = await fetch(request);
+		if (response.status == 0)
+			return response;
+
 		cache(request, response);
 	}
 
