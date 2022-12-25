@@ -4,7 +4,7 @@ const cacheName = `${location.hostname}-${config.cacheName}-${config.cacheVersio
 
 async function install() {
 	const cache = await caches.open(cacheName);
-	await cache.addAll(app.cacheList);
+	await cache.addAll(config.cacheList);
 }
 
 /**
