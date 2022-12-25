@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
 		<meta name="description" content="Online multiplayer / single player chess in HTML5, open source on GitHub, adless and free forever" />
 		<meta name="keywords" content="chesscheta,chess,online,multiplayer,html5,game,open-source,free,no ads,adless" />
@@ -11,8 +11,7 @@
 		<link rel="manifest" type="application/json" href="manifest.json" />
 		<script type="text/javascript" src="lib/jquery-3.6.1.min.js"></script>
 		<script type="text/javascript" src="lib/chessboard-1.0.0.min.js"></script>
-		<script type="text/javascript" src="lib/webalert/webalert.js"></script>
-		<script type="text/javascript" src="https://accounts.google.com/gsi/client"></script>
+		<script type="text/javascript" src="lib/webalert.js"></script>
 		<title>ChessCheta - Online Multiplayer Chess</title>
 		<style type="text/css">
 @import url("res/ubuntu/ubuntu.css");
@@ -27,26 +26,29 @@
 }
 
 ::-webkit-scrollbar {
-	position: absolute;
-	display: block;
+	height: 10px;
 	width: 10px;
-	height: 100%;
 }
 
 ::-webkit-scrollbar-track {
 	border-style: solid;
 	border-width: 1px;
-	border-color: rgba(0, 0, 0, 0.18);
+	border-color: #d0d0d0;
 	border-radius: 5px;
+	background: #ffffff;
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: rgba(0, 0, 0, 0.18);
 	border-radius: 5px;
+	background: #d0d0d0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(0, 0, 0, 0.3);
+	background: #c0c0c0;
+}
+
+::-webkit-scrollbar-thumb:active {
+	background: #a0a0a0;
 }
 
 body {
@@ -60,17 +62,9 @@ body {
 	font-weight: 500;
 	font-style: normal;
 	color: #303030;
-	background-color: #ffffff;
-  /*background-image: url("res/bg.jpg");
-	background-repeat: no-repeat;*/
+	accent-color: #303030;
+	background: #ffffff;
 }
-
-/* @media (prefers-color-scheme: dark) {
-	body {
-		color: #ffffff;
-		background-color: #303030;
-	}
-} */
 
 input, select, textarea {
 	font-size: inherit;
@@ -78,14 +72,20 @@ input, select, textarea {
 	font-weight: inherit;
 	font-style: inherit;
 	color: inherit;
+	background: rgba(0, 0, 0, 0);
+}
+
+a {
+	color: unset;
+	cursor: unset;
+	text-decoration: unset;
 }
 
 #header {
 	position: absolute;
 	display: block;
-	width: calc(100% - 20px);
-	height: 50px;
-	padding: 10px;
+	width: 100%;
+	height: 70px;
 	border-bottom-style: solid;
 	border-bottom-width: 3px;
 	border-bottom-color: #303030;
@@ -113,7 +113,6 @@ input, select, textarea {
 	line-height: 30px;
 	font-size: 24px;
 	font-weight: 600;
-	user-select: none;
 }
 
 #sublogo {
@@ -124,13 +123,6 @@ input, select, textarea {
 	left: 70px;
 	top: 40px;
 	line-height: 20px;
-	user-select: none;
-}
-
-#account {
-	position: absolute;
-	right: 160px;
-	top: 10px;
 }
 
 #home {
@@ -536,6 +528,11 @@ input, select, textarea {
 	text-decoration: none;
 }
 
+#footer a {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
 .option-menu {
 	position: relative;
 	display: block;
@@ -548,16 +545,15 @@ input, select, textarea {
 
 input[type=checkbox], input[type="radio"] {
 	position: relative;
-	width: 20px;
-	height: 20px;
+	width: 16px;
+	height: 16px;
+	outline: none;
+	cursor: pointer;
+	appearance: none;
 	vertical-align: middle;
 	border-style: solid;
 	border-color: #808080;
 	border-width: 1px;
-	outline: none;
-	cursor: pointer;
-	appearance: none;
-	-webkit-appearance: none;
 }
 
 input[type="radio"] {
@@ -567,7 +563,6 @@ input[type="radio"] {
 }
 
 input[type="checkbox"]:checked {
-	background-color: #008000;
 	background-image: url("res/checkbox.svg");
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -646,10 +641,9 @@ select:focus, input[type="text"]:focus {
 			<div id="logo-img"></div>
 			<div id="logo">Chess<i>Cheta</i></div>
 			<div id="sublogo">VERS</div>
-			<img id="account" class="image-button" src="res/account.svg" width="30" height="30" aria-label="Account" />
-			<img id="home" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
-			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" aria-label="Settings" />
-			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" aria-label="About" />
+			<img id="home" class="image-button" src="res/home.svg" width="30" height="30" title="Home" />
+			<img id="settings" class="image-button" src="res/settings.svg" width="30" height="30" title="Settings" />
+			<img id="about" class="image-button" src="res/about.svg" width="30" height="30" title="About" />
 		</div>
 		<div id="screen-container">
 			<div id="menu-screen" class="screen">
@@ -677,7 +671,7 @@ select:focus, input[type="text"]:focus {
 						</div>
 					</div>
 				</div>
-				<div id="footer">ChessCheta v<span id="version"></span> | Created by <a href="https://www.github.com/ruochenjia" target="_blank">Ruochen Jia</a> | <a href="https://www.github.com/ruochenjia/chesscheta" target="_blank">GitHub</a></div>
+				<div id="footer">ChessCheta v<span id="version"></span> | Created by <a href="https://github.com/ruochenjia" target="_blank" rel="noopener">Ruochen Jia</a> | <a href="https://github.com/ruochenjia/chesscheta" target="_blank" rel="noopener">GitHub</a></div>
 			</div>
 			<div id="option-screen" class="screen" style="visibility: hidden;">
 				<div class="option-menu">
@@ -760,11 +754,11 @@ select:focus, input[type="text"]:focus {
 							</div>
 							<div id="status" style="margin-top: 10px;"></div>
 							<div id="local">
-								<img id="undo" class="image-button" src="res/undo.svg" width="30" height="30" aria-label="Undo" />
-								<img id="redo" class="image-button" src="res/redo.svg" width="30" height="30" aria-label="Redo" />
-								<img id="restart" class="image-button" src="res/restart.svg" width="30" height="30" aria-label="Restart" />
-								<img id="show-hint" class="image-button" src="res/hint.svg" width="30" height="30" aria-label="Show Hint" />
-								<img id="menu-btn" class="image-button" src="res/home.svg" width="30" height="30" aria-label="Home" />
+								<img id="undo" class="image-button" src="res/undo.svg" width="30" height="30" title="Undo" />
+								<img id="redo" class="image-button" src="res/redo.svg" width="30" height="30" title="Redo" />
+								<img id="restart" class="image-button" src="res/restart.svg" width="30" height="30" title="Restart" />
+								<img id="show-hint" class="image-button" src="res/hint.svg" width="30" height="30" title="Show Hint" />
+								<img id="menu-btn" class="image-button" src="res/home.svg" width="30" height="30" title="Home" />
 							</div>
 							<div id="fen-label">FEN: </div>
 							<input id="fen" type="text" value="" placeholder="FEN String" />
@@ -811,11 +805,6 @@ select:focus, input[type="text"]:focus {
 					<div class="block-title" style="margin-top: 40px; margin-bottom: 10px;">Game</div>
 					<input id="auto-flip-lm" type="checkbox" checked="true" />
 					<label for="auto-flip-lm">Auto Flip in Local Multiplayer Mode</label>
-				</div>
-			</div>
-			<div id="account-management-screen" class="screen" style="visibility: hidden;">
-				<div class="option-menu">
-					
 				</div>
 			</div>
 			<div id="loading-screen" class="screen">

@@ -1,40 +1,51 @@
-import { clientConfig } from "./clientconfig.js";
+import config from "./config.js";
 
-const cacheName =  `${self.location.hostname}-${clientConfig.cacheName}-${clientConfig.cacheVersion}`;
+const cacheName = `${location.hostname}-${config.cacheName}-${config.cacheVersion}`;
 
 async function install() {
-	let cache = await caches.open(cacheName);
-	await cache.addAll(clientConfig.cacheList);
+	const cache = await caches.open(cacheName);
+	await cache.addAll(app.cacheList);
 }
 
+/**
+ * @param {Request} request 
+ * @param {Response} response 
+ */
 async function cache(request, response) {
 	try {
-		let cache = await caches.open(cacheName);
+		const cache = await caches.open(cacheName);
 		await cache.put(request, response.clone());
 	} catch(err) {
 		// ignore - this is usually caused by an unsupported request method
 	}
 }
 
-async function fetchRe({ request }) {
-	let response = await caches.match(request);
+/**
+ * @param {Request} request 
+ */
+async function fetchRe(request) {
+	let response = await caches.match(request, { cacheName });
 	if (response == null) {
 		response = await fetch(request);
-		if (response.status == 0)
-			return response;
 
-		cache(request, response);
+		if (response.status == 0) {
+			// cross origin responses
+			return response;
+		}
+
+		await cache(request, response);
+	}
+
+	const headers = new Headers(response.headers);
+	const head = config.headers;
+	for (let h in head) {
+		headers.set(h, head[h]);
 	}
 
 	return new Response(response.body, {
 		status: response.status,
 		statusText: response.statusText,
-		headers: (() => {
-			let head = new Headers(response.headers);
-			for (let e of Object.entries(clientConfig.headers))
-				head.set(e[0], e[1]);
-			return head;
-		})()
+		headers
 	});
 }
 
@@ -50,7 +61,7 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-	event.respondWith(fetchRe(event));
+	event.respondWith(fetchRe(event.request));
 });
 
 self.addEventListener("activate", (event) => {

@@ -1,23 +1,29 @@
 import { game, evaluateBoard } from "./gamebase.js";
 import { io } from "./lib/socket.io.esm.min.js";
-import { clientConfig } from "./clientconfig.js";
+import { default as clientConfig } from "./config.js";
 import { UCIEngine } from "./uci.js";
-import { storage } from "./storage.js";
 import { ColorCode } from "./colorcode.js";
 import { css } from "./cssutil.js";
 
 // default error handler
-window.onerror = (msg, src, lineno, colno, e) => {
-	alert(msg, "Error");
+window.onerror = (message, src, lineno, colno, error) => {
+	alert(`Error at "${src}", line ${lineno}:${colno}: \n${error}`, "Error");
 };
 
-// register service worker if available
-if ("serviceWorker" in window.navigator && window.location.hostname != "localhost") {
-	window.navigator.serviceWorker.register("./sw.js", {
-		scope: "/",
-		type: "module",
-		updateViaCache: "all"
-	});
+const location = new URL(window.location.href);
+const nsw = window.navigator.serviceWorker;
+
+if (location.hostname != "localhost") {
+	try {
+		await nsw.register("/sw.js", {
+			scope: "/",
+			type: "classic",
+			updateViaCache: "none"
+		});
+		await nsw.ready;
+	} catch(err) {
+		console.error(err);
+	}
 }
 
 Array.prototype.remove = function(element) {
@@ -70,6 +76,40 @@ await engine.grep("uciok");
 engine.write("isready");
 engine.grep("readyok");
 
+// storage init
+const storage = (() => {
+	const base = {
+		/**
+		 * @type {<E>(key: string, def: E) => E}
+		 */
+		getItem: function (key, def) {
+			let item = this[key];
+			if (item == null)
+				return this[key] = def;
+			return item;
+		},
+		save: () => { }
+	};
+
+	try {
+		const data = localStorage.getItem("data") || "{}";
+		Object.assign(base, JSON.parse(data));
+		base.save = function () {
+			localStorage.setItem("data", JSON.stringify(this));
+		};
+
+		// autosave
+		setInterval(() => {
+			base.save();
+		}, 10000);
+	} catch(err) {
+		alert("Local storage is disabled by your browser, your browsing data will not be saved.", "Warning");
+	}
+
+	return base;
+})();
+window.onbeforeunload = window.onunload = () => storage.save();
+
 // server init
 const socket = io(clientConfig.server);
 socket.on("register", () => {
@@ -120,17 +160,6 @@ socket.on("game_abort", () => {
 	alert("Player disconnected", "Game Aborted");
 	changeScreen("#menu-screen");
 });
-
-// google account init
-if (typeof google != "undefined") {
-	google.accounts.id.initialize({
-		client_id: "677364250175-7fd5e9m85ptnhk24si2emnfmmheklvok.apps.googleusercontent.com",
-		context: "use",
-		ux_mode: "popup",
-		nonce: "",
-		callback: googleOAuthCallback,
-	});
-} else console.warn("Google API is not available");
 
 
 //  EVENT LISTENERS
