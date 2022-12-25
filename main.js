@@ -15,7 +15,7 @@ if (location.hostname != "localhost") {
 	try {
 		await nsw.register("/sw.js", {
 			scope: "/",
-			type: "classic",
+			type: "module",
 			updateViaCache: "none"
 		});
 		await nsw.ready;
