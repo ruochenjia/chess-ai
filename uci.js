@@ -24,7 +24,7 @@ const engines = {
 	}
 };
 
-function UCIEngine() {
+export default function UCIEngine() {
 	let base = null;
 
 	/**
@@ -64,5 +64,3 @@ function UCIEngine() {
 		});
 	};
 }
-
-export { UCIEngine };

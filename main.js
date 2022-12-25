@@ -1,9 +1,7 @@
 import { game, evaluateBoard } from "./gamebase.js";
 import { io } from "./lib/socket.io.esm.min.js";
 import { default as clientConfig } from "./config.js";
-import { UCIEngine } from "./uci.js";
-import { ColorCode } from "./colorcode.js";
-import { css } from "./cssutil.js";
+import UCIEngine from "./uci.js";
 
 // default error handler
 window.onerror = (message, src, lineno, colno, error) => {
@@ -356,28 +354,7 @@ $("#load").on("click", () => {
 $("#settings").on("click", () => {
 	changeScreen("#settings-screen");
 
-	let darkSquareColor = ColorCode.parse(storage.getItem("darkSquareColor", "#b58863"));
-	let lightSquareColor = ColorCode.parse(storage.getItem("lightSquareColor", "#f0d9b5"));
-	let moveWhiteColor = ColorCode.parse(storage.getItem("moveWhiteColor", "#0000ff"));
-	let moveBlackColor = ColorCode.parse(storage.getItem("moveBlackColor", "#ff0000"));
-	let hintColor = ColorCode.parse(storage.getItem("hintColor", "#ffff00"));
-	let moveableSquaresColor = ColorCode.parse(storage.getItem("moveableSquaresColor", "#008000"));
-
-	$("#dark-square-color").val(darkSquareColor.toString());
-	$("#light-square-color").val(lightSquareColor.toString());
-	$("#move-white-color").val(moveWhiteColor.toString());
-	$("#move-black-color").val(moveBlackColor.toString());
-	$("#hint-color").val(hintColor.toString());
-	$("#moveable-squares-color").val(moveableSquaresColor.toString());
-
-	$("#dark-square-color-preview").css("background-color", darkSquareColor.cssString);
-	$("#light-square-color-preview").css("background-color", lightSquareColor.cssString);
-	$("#move-white-color-preview").css("background-color", moveWhiteColor.cssString);
-	$("#move-black-color-preview").css("background-color", moveBlackColor.cssString);
-	$("#hint-color-preview").css("background-color", hintColor.cssString);
-	$("#moveable-squares-color-preview").css("background-color", moveableSquaresColor.cssString);
-
-	$("#auto-flip-lm").prop("checked", storage.getItem("autoFlipLm", "true"));
+	$("#auto-flip-lm").prop("checked", storage.getItem("autoFlipLm", true));
 });
 $("#about").on("click", () => {
 	alert(`ChessCheta version ${clientConfig.cacheVersion}, open source on <a href="https://www.github.com/ruochenjia/chesscheta" target="_blank">GitHub</a>.`, "About");
@@ -457,25 +434,6 @@ function changeScreen(id) {
 	$(id).css("visibility", "visible");
 }
 
-function applyBoardStyles() {
-	let darkSquareColor = ColorCode.parse(storage.getItem("darkSquareColor", "#b58863")).cssString;
-	let lightSquareColor = ColorCode.parse(storage.getItem("lightSquareColor", "#f0d9b5")).cssString;
-	let moveWhiteColor = ColorCode.parse(storage.getItem("moveWhiteColor", "#0000ff")).cssString;
-	let moveBlackColor = ColorCode.parse(storage.getItem("moveBlackColor", "#ff0000")).cssString;
-	let hintColor = ColorCode.parse(storage.getItem("hintColor", "#ffff00")).cssString;
-	let moveableSquaresColor = ColorCode.parse(storage.getItem("moveableSquaresColor", "#008000")).cssString;
-
-	let r = css.rules;
-	r.get(".white-1e1d7").style.color = darkSquareColor;
-	r.get(".black-3c85d").style.color = lightSquareColor;
-	r.get(".white-1e1d7").style.backgroundColor = lightSquareColor;
-	r.get(".black-3c85d").style.backgroundColor = darkSquareColor;
-	r.get(".highlight-white").style.borderColor = moveWhiteColor;
-	r.get(".highlight-black").style.borderColor = moveBlackColor;
-	r.get(".highlight-hint").style.borderColor = hintColor;
-	r.get(".highlight-moveable").style.borderColor = moveableSquaresColor;
-}
-
 function resizeBoard() {
 	let width = $("#board").width();
 	let height = $("#board").height();
@@ -486,15 +444,10 @@ function resizeBoard() {
 	board.resize();
 }
 
-applyBoardStyles();
 resizeBoard();
 
 if (storage.savedGame != null)
 	$("#continue").css("display", "block");
-
-function googleOAuthCallback(data) {
-	throw data;
-}
 
 function removeHighlights() {
 	$("#board .square-55d63").removeClass("highlight-white");
@@ -754,7 +707,7 @@ function onDrop(source, target) {
 			}
 			break;
 		case "local":
-			if (!move.status && storage.getItem("autoFlipLm", "true")) {
+			if (!move.status && storage.getItem("autoFlipLm", true)) {
 				board.orientation(move.color == "w" ? "black" : "white");
 			}
 			break;
